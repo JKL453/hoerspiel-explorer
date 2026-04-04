@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import re
 from pathlib import Path
+from time import time
 
 import certifi
 import requests
@@ -47,8 +48,12 @@ def save_html(html: str, target_dir: Path, source_url: str) -> Path:
     return output_path
 
 
+def polite_delay(seconds: float = 3.0) -> None:
+    time.sleep(seconds)
+
+
 def main() -> None:
-    url = "https://example.com"
+    url = "https://www.hoerspiele.de/hsp_anzeige.asp?code=7985"
     html = fetch_page(url)
     saved_path = save_html(html=html, target_dir=RAW_DATA_DIR, source_url=url)
     print(f"Saved HTML to {saved_path}")

@@ -130,67 +130,6 @@ def extract_speakers(speakers_cell: Tag | None) -> list[dict[str, str]]:
     return speakers
 
 
-
-
-def extract_order_number(description_cell: Tag | None) -> str | None:
-    if description_cell is None:
-        return None
-
-    text = description_cell.get_text(" ", strip=True)
-    match = re.search(r"Bestellnummer:\s*(?:CD:\s*)?([^\s]+)", text)
-    if not match:
-        return None
-
-    return match.group(1)
-
-
-def extract_genres(soup: BeautifulSoup) -> list[str]:
-    genres: list[str] = []
-
-    for td in soup.find_all("td"):
-        text = " ".join(td.get_text(" ", strip=True).split())
-        if text.startswith("- "):
-            genre = text.removeprefix("- ").strip()
-            if genre:
-                genres.append(genre)
-
-    return genres
-
-
-def extract_previous_episode_url(path_cell: Tag | None) -> str | None:
-    if path_cell is None:
-        return None
-
-    full_text = " ".join(path_cell.get_text(" ", strip=True).split()).lower()
-    if "keine folge davor" in full_text:
-        return None
-
-    detail_links = path_cell.find_all(
-        "a",
-        href=lambda href: href and "hsp_anzeige.asp?code=" in href,
-    )
-
-    if len(detail_links) >= 3:
-        return urljoin("https://www.hoerspiele.de/", detail_links[2]["href"])
-
-    return None
-
-
-def extract_next_episode_url(path_cell: Tag | None) -> str | None:
-    if path_cell is None:
-        return None
-
-    detail_links = path_cell.find_all(
-        "a",
-        href=lambda href: href and "hsp_anzeige.asp?code=" in href,
-    )
-
-    if len(detail_links) >= 3:
-        return urljoin("https://www.hoerspiele.de/", detail_links[-1]["href"])
-
-    return None
-
-
 def extract_description(description_cell: Tag | None) -> str | None:
     if description_cell is None:
         return None

@@ -29,6 +29,7 @@ dist/
 # Data (large / generated)
 data/raw/detail_pages/*
 data/raw/series_pages/*
+data/raw/*.html
 data/interim/*
 
 # Logs

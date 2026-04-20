@@ -1,0 +1,18 @@
+# Für lokales Testen:
+#   docker compose up --build
+#
+# Für Swarm/Portainer:
+#   Image zuerst bauen & pushen, dann als Stack deployen (siehe stack.yml)
+
+services:
+  scraper:
+    build: .
+    image: deinname/hoerspiel-scraper:latest   # <-- anpassen
+    container_name: hoerspiel-scraper
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data:/app/data    # raw HTML + JSON landen hier
+    environment:
+      PYTHONUNBUFFERED: "1"

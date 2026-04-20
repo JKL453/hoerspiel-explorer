@@ -1,0 +1,33 @@
+# stack.yml — für Portainer / Docker Swarm
+#
+# Deployen:
+#   1. Image bauen & pushen:
+#        docker build -t deinname/hoerspiel-scraper:latest .
+#        docker push deinname/hoerspiel-scraper:latest
+#
+#   2. In Portainer: Stacks → Add Stack → dieses File einfügen
+#
+# Wichtig: "deinname" durch deinen Registry-Nutzernamen ersetzen
+
+version: "3.8"
+
+services:
+  scraper:
+    image: deinname/hoerspiel-scraper:latest   # <-- anpassen
+    ports:
+      - "5000:5000"
+    volumes:
+      - hoerspiel-data:/app/data
+    environment:
+      PYTHONUNBUFFERED: "1"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      # Optional: auf einem bestimmten Node pinnen (Label vorher setzen)
+      # placement:
+      #   constraints:
+      #     - node.labels.scraper == true
+
+volumes:
+  hoerspiel-data:

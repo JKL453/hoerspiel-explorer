@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hörspiel Scraper</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a;
+    --border: #2e3250; --accent: #6c8cff; --accent2: #a78bfa;
+    --green: #34d399; --red: #f87171; --yellow: #fbbf24;
+    --text: #e2e8f0; --muted: #6b7280;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; font-size: 14px; }
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 28px; display: flex; align-items: center; gap: 14px; }
+  header h1 { font-size: 17px; font-weight: 700; flex: 1; }
+  .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+  .live-dot.paused { background: var(--yellow); }
+  .live-dot.running { animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+  main { max-width: 1000px; margin: 0 auto; padding: 24px 18px; display: flex; flex-direction: column; gap: 20px; }
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; }
+  .stat .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+  .stat .value { font-size: 26px; font-weight: 700; color: var(--accent); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .card-head { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .card-head h2 { font-size: 13px; font-weight: 600; }
+  .card-body { padding: 16px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  input[type=text], input[type=number] { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 7px 11px; font-size: 13px; }
+  input[type=text] { flex: 1; min-width: 180px; }
+  input[type=number] { width: 70px; }
+  input:focus { outline: 2px solid var(--accent); }
+  .btn { border: none; border-radius: 6px; padding: 7px 15px; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity .15s; background: var(--accent); color: #fff; }
+  .btn:hover { opacity: .85; }
+  .btn.pause  { background: var(--yellow); color: #000; }
+  .btn.resume { background: var(--green);  color: #000; }
+  .btn.ghost  { background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-weight: 500; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 7px 11px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .4px; border-bottom: 1px solid var(--border); }
+  td { padding: 9px 11px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); }
+  .badge { display: inline-block; padding: 2px 7px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge.ok      { background: #1e3a2a; color: var(--green); }
+  .badge.skip    { background: #2a2a1e; color: var(--yellow); }
+  .badge.error   { background: #3a1a1a; color: var(--red); }
+  .badge.running { background: #1a3a2a; color: var(--green); }
+  .badge.paused  { background: #3a3a1a; color: var(--yellow); }
+  .badge.done    { background: #1e3a2a; color: var(--green); }
+  .badge.idle    { background: #222; color: var(--muted); }
+  .progress { height: 5px; background: var(--surface2); border-radius: 3px; margin-top: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width .3s; }
+  .current { color: var(--muted); font-size: 12px; font-style: italic; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .url { color: var(--muted); font-size: 11px; font-family: monospace; word-break: break-all; max-width: 300px; }
+  .errmsg { color: var(--red); font-size: 11px; }
+  .empty { color: var(--muted); text-align: center; padding: 28px; }
+  .hint { color: var(--muted); font-size: 12px; margin-bottom: 12px; line-height: 1.6; }
+  code { color: var(--accent2); background: var(--surface2); padding: 1px 5px; border-radius: 3px; }
+  @media (max-width: 640px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+<header>
+  <div class="live-dot" id="dot"></div>
+  <h1>🎙 Hörspiel Scraper</h1>
+  <button class="btn pause"  id="btn-pause"  onclick="doPause()"  style="display:none">⏸ Pause</button>
+  <button class="btn resume" id="btn-resume" onclick="doResume()" style="display:none">▶ Weiter</button>
+  <span style="color:var(--muted);font-size:12px" id="ts">–</span>
+</header>
+<main>
+  <div class="stats-row">
+    <div class="stat"><div class="label">Episoden gesamt</div><div class="value" id="s-eps">–</div></div>
+    <div class="stat"><div class="label">Jobs</div><div class="value" id="s-jobs">–</div></div>
+    <div class="stat"><div class="label">Laufend</div><div class="value" id="s-run">–</div></div>
+    <div class="stat"><div class="label">Fehler</div><div class="value" id="s-err" style="color:var(--red)">–</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h2>Neue Serien</h2></div>
+    <div class="card-body">
+      <p class="hint">
+        Serien-ID aus der URL: <code>hsp_serie.asp?serie=<strong>738</strong></code><br>
+        Mehrere IDs kommagetrennt, z.B. <code>738, 1, 202</code>
+      </p>
+      <div class="row">
+        <input type="text"   id="ids"   placeholder="Serien-IDs, z.B. 738, 1" />
+        <input type="number" id="delay" value="3" min="1" max="30" title="Sekunden zwischen Requests" />
+        <button class="btn" onclick="doStart()">▶ Starten</button>
+      </div>
+      <p id="start-msg" style="margin-top:10px;font-size:12px;display:none"></p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h2>Jobs</h2><span style="color:var(--muted);font-size:12px">alle 3s</span></div>
+    <div id="jobs-wrap"><div class="empty">–</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h2>Log (letzte 150)</h2>
+      <button class="btn ghost" onclick="renderLog()">↻</button>
+    </div>
+    <div id="log-wrap"><div class="empty">–</div></div>
+  </div>
+</main>
+
+<script>
+let _state = null;
+
+async function fetchState() {
+  const [sum, state] = await Promise.all([
+    fetch("/api/summary").then(r => r.json()),
+    fetch("/api/state").then(r => r.json()),
+  ]);
+  _state = state;
+  renderSummary(sum);
+  renderJobs(state.jobs);
+  renderLog();
+  updateControls(sum);
+  document.getElementById("ts").textContent = new Date().toLocaleTimeString("de-DE");
+}
+
+function renderSummary(s) {
+  document.getElementById("s-eps").textContent  = s.total_episodes.toLocaleString("de");
+  document.getElementById("s-jobs").textContent = s.jobs_total;
+  document.getElementById("s-run").textContent  = s.jobs_running;
+  document.getElementById("s-err").textContent  = s.total_errors;
+}
+
+function updateControls(s) {
+  const dot = document.getElementById("dot");
+  const bPause = document.getElementById("btn-pause");
+  const bResume = document.getElementById("btn-resume");
+  const hasActive = s.jobs_running > 0 || (s.jobs_total > 0 && s.jobs_done < s.jobs_total);
+  dot.className = "live-dot " + (s.paused ? "paused" : s.jobs_running > 0 ? "running" : "");
+  bPause.style.display  = (!s.paused && hasActive) ? "" : "none";
+  bResume.style.display = s.paused ? "" : "none";
+}
+
+function badge(status) { return `<span class="badge ${status}">${status}</span>`; }
+
+function renderJobs(jobs) {
+  const wrap = document.getElementById("jobs-wrap");
+  if (!jobs.length) { wrap.innerHTML = `<div class="empty">Noch keine Jobs.</div>`; return; }
+  let h = `<table><thead><tr><th>ID</th><th>Status</th><th>Fortschritt</th><th>Neu</th><th>Skip</th><th>Fehler</th><th>Aktuell</th></tr></thead><tbody>`;
+  for (const j of jobs) {
+    const processed = j.done + j.skipped;
+    const pct = j.total > 0 ? Math.round(processed / j.total * 100) : 0;
+    h += `<tr>
+      <td><a href="${j.series_url}" target="_blank" style="color:var(--accent)">${j.series_id}</a></td>
+      <td>${badge(j.status)}</td>
+      <td style="min-width:130px">
+        <span style="font-size:12px">${processed} / ${j.total} (${pct}%)</span>
+        <div class="progress"><div class="progress-fill" style="width:${pct}%"></div></div>
+      </td>
+      <td style="color:var(--green)">${j.done}</td>
+      <td style="color:var(--yellow)">${j.skipped}</td>
+      <td style="color:var(--red)">${j.errors}</td>
+      <td class="current">${j.current_title || "–"}</td>
+    </tr>`;
+  }
+  h += `</tbody></table>`;
+  wrap.innerHTML = h;
+}
+
+function renderLog() {
+  if (!_state) return;
+  const entries = _state.jobs.flatMap(j => j.log).sort((a,b) => b.ts.localeCompare(a.ts)).slice(0,150);
+  const wrap = document.getElementById("log-wrap");
+  if (!entries.length) { wrap.innerHTML = `<div class="empty">Noch keine Einträge.</div>`; return; }
+  let h = `<table><thead><tr><th>Zeit</th><th>Status</th><th>Titel</th><th>URL</th><th>Meldung</th></tr></thead><tbody>`;
+  for (const e of entries) {
+    h += `<tr>
+      <td style="white-space:nowrap;color:var(--muted);font-size:11px">${e.ts.replace("T"," ")}</td>
+      <td>${badge(e.status)}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.title}</td>
+      <td class="url">${e.url}</td>
+      <td class="errmsg">${e.message || ""}</td>
+    </tr>`;
+  }
+  h += `</tbody></table>`;
+  wrap.innerHTML = h;
+}
+
+async function doStart() {
+  const raw = document.getElementById("ids").value.trim();
+  const delay = parseFloat(document.getElementById("delay").value) || 3;
+  const ids = raw.split(/[\s,;]+/).map(s => parseInt(s)).filter(n => !isNaN(n));
+  if (!ids.length) return;
+  const msg = document.getElementById("start-msg");
+  msg.style.display = "block"; msg.style.color = "var(--muted)"; msg.textContent = "...";
+  const r = await fetch("/api/scrape", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({series_ids: ids, delay}) });
+  const d = await r.json();
+  msg.style.color = "var(--green)";
+  msg.textContent = `✓ Gestartet: ${d.enqueued.join(", ")}`;
+  document.getElementById("ids").value = "";
+  fetchState();
+}
+
+async function doPause()  { await fetch("/api/pause",  {method:"POST"}); fetchState(); }
+async function doResume() { await fetch("/api/resume", {method:"POST"}); fetchState(); }
+
+document.getElementById("ids").addEventListener("keydown", e => { if (e.key === "Enter") doStart(); });
+fetchState();
+setInterval(fetchState, 3000);
+</script>
+</body>
+</html>

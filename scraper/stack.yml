@@ -13,7 +13,7 @@ services:
   scraper:
     image: <registry>/hoerspiel-scraper:latest
     ports:
-      - "5000:5000"
+      - "5123:5123"
     volumes:
       - hoerspiel-data:/app/data
     environment:

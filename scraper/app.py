@@ -1,4 +1,4 @@
-"""Flask-Dashboard — nur Status-Anzeige + Pause/Resume. Kein DB-Write."""
+"""Flask-Dashboard — Status-Anzeige, Pause/Resume, Discovery und Scrape-All."""
 from __future__ import annotations
 
 import logging
@@ -39,6 +39,26 @@ def api_scrape():
     worker.delay = delay
     worker.enqueue(series_ids)
     return jsonify({"enqueued": series_ids})
+
+
+@app.route("/api/discover", methods=["POST"])
+def api_discover():
+    data = request.get_json(force=True) or {}
+    max_id = int(data.get("max_id", 2000))
+    delay = float(data.get("delay", 1.0))
+    stop_after_misses = int(data.get("stop_after_misses", 50))
+    worker.start_discovery(max_id=max_id, delay=delay, stop_after_misses=stop_after_misses)
+    return jsonify({"status": "discovering", "max_id": max_id})
+
+
+@app.route("/api/scrape_all", methods=["POST"])
+def api_scrape_all():
+    data = request.get_json(force=True) or {}
+    max_id = int(data.get("max_id", 2000))
+    delay = float(data.get("delay", 1.0))
+    stop_after_misses = int(data.get("stop_after_misses", 50))
+    worker.scrape_all(max_id=max_id, delay=delay, stop_after_misses=stop_after_misses)
+    return jsonify({"status": "ok"})
 
 
 @app.route("/api/pause", methods=["POST"])

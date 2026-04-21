@@ -21,7 +21,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Hörspiel Scraper")
     parser.add_argument("--series", nargs="+", type=int, metavar="ID", help="Serien-IDs die sofort gestartet werden sollen")
     parser.add_argument("--delay",  type=float, default=3.0, help="Sekunden zwischen Requests (Standard: 3)")
-    parser.add_argument("--port",   type=int,   default=5000, help="Port für das Dashboard (Standard: 5000)")
+    parser.add_argument("--port",   type=int,   default=5123, help="Port für das Dashboard (Standard: 5123)")
     args = parser.parse_args()
 
     from scraper.worker import worker

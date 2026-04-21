@@ -1,31 +1,32 @@
-# Portainer Stack deployment
-#
-# 1. Build and push the image from the project root:
-#      docker build -t <registry>/hoerspiel-scraper:latest .
-#      docker push <registry>/hoerspiel-scraper:latest
-#
-# 2. In Portainer: Stacks → Add Stack → paste this file
-#    Replace <registry>/hoerspiel-scraper:latest with your actual image.
-
 version: "3.8"
-
 services:
   scraper:
-    image: <registry>/hoerspiel-scraper:latest
+    image: jkl453/hoerspiel-scraper:latest
     ports:
       - "5123:5123"
     volumes:
-      - hoerspiel-data:/app/data
+      - ${VOLUME_TARGET}/data:/app/data
     environment:
       PYTHONUNBUFFERED: "1"
     deploy:
       replicas: 1
       restart_policy:
         condition: on-failure
-      # Pin to a specific node (set label first: docker node update --label-add scraper=true <node-id>)
-      # placement:
-      #   constraints:
-      #     - node.labels.scraper == true
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.scraper.entrypoints=http"
+        - "traefik.http.routers.scraper.rule=Host(`${HOST_URL}`)"
+        - "traefik.http.middlewares.scraper-https-redirect.redirectscheme.scheme=https"
+        - "traefik.http.routers.scraper.middlewares=scraper-https-redirect"
+        - "traefik.http.routers.scraper-secure.entrypoints=https"
+        - "traefik.http.routers.scraper-secure.rule=Host(`${HOST_URL}`)"
+        - "traefik.http.routers.scraper-secure.tls=true"
+        - "traefik.http.routers.scraper-secure.service=scraper"
+        - "traefik.http.services.scraper.loadbalancer.server.port=5123"
+        - "traefik.docker.network=proxy"
+    networks:
+      - proxy
 
-volumes:
-  hoerspiel-data:
+networks:
+  proxy:
+    external: true

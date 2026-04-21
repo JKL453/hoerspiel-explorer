@@ -21,6 +21,6 @@ VOLUME ["/app/data"]
 ENV PYTHONPATH=/app:/app/src
 ENV PYTHONUNBUFFERED=1
 
-EXPOSE 5000
+EXPOSE 5123
 
-CMD ["python", "-m", "scraper.run_scraper"]
+CMD ["python", "-m", "scraper.run_scraper", "--port", "5123"]

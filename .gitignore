@@ -31,6 +31,8 @@ data/raw/detail_pages/*
 data/raw/series_pages/*
 data/raw/*.html
 data/interim/*
+data/scraped_state.json
+data/series_index.json
 
 # Logs
 *.log

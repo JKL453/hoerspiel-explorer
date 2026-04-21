@@ -1,18 +1,22 @@
-# Für lokales Testen:
-#   docker compose up --build
+# Local testing:
+#   cd scraper && docker compose up --build
+#   or from project root: docker compose -f scraper/docker-compose.yml up --build
 #
-# Für Swarm/Portainer:
-#   Image zuerst bauen & pushen, dann als Stack deployen (siehe stack.yml)
+# For Portainer: build & push, then deploy via stack.yml
+#   docker build -f scraper/Dockerfile -t <registry>/hoerspiel-scraper:latest .
+#   docker push <registry>/hoerspiel-scraper:latest
 
 services:
   scraper:
-    build: .
-    image: deinname/hoerspiel-scraper:latest   # <-- anpassen
+    build:
+      context: ..
+      dockerfile: scraper/Dockerfile
+    image: hoerspiel-scraper:latest
     container_name: hoerspiel-scraper
     restart: unless-stopped
     ports:
       - "5000:5000"
     volumes:
-      - ./data:/app/data    # raw HTML + JSON landen hier
+      - ../data:/app/data
     environment:
       PYTHONUNBUFFERED: "1"

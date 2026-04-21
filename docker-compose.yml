@@ -1,0 +1,15 @@
+# Local testing: docker compose up --build
+# For Portainer: build & push the image, then deploy via scraper/stack.yml
+
+services:
+  scraper:
+    build: .
+    image: hoerspiel-scraper:latest
+    container_name: hoerspiel-scraper
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      PYTHONUNBUFFERED: "1"

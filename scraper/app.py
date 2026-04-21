@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 from flask import Flask, jsonify, request, render_template
 
-from hoerspiel_discovery.worker import worker
+from scraper.worker import worker
 
 logging.basicConfig(
     level=logging.INFO,

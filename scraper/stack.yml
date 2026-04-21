@@ -1,19 +1,17 @@
-# stack.yml — für Portainer / Docker Swarm
+# Portainer Stack deployment
 #
-# Deployen:
-#   1. Image bauen & pushen:
-#        docker build -t deinname/hoerspiel-scraper:latest .
-#        docker push deinname/hoerspiel-scraper:latest
+# 1. Build and push the image from the project root:
+#      docker build -t <registry>/hoerspiel-scraper:latest .
+#      docker push <registry>/hoerspiel-scraper:latest
 #
-#   2. In Portainer: Stacks → Add Stack → dieses File einfügen
-#
-# Wichtig: "deinname" durch deinen Registry-Nutzernamen ersetzen
+# 2. In Portainer: Stacks → Add Stack → paste this file
+#    Replace <registry>/hoerspiel-scraper:latest with your actual image.
 
 version: "3.8"
 
 services:
   scraper:
-    image: deinname/hoerspiel-scraper:latest   # <-- anpassen
+    image: <registry>/hoerspiel-scraper:latest
     ports:
       - "5000:5000"
     volumes:
@@ -24,7 +22,7 @@ services:
       replicas: 1
       restart_policy:
         condition: on-failure
-      # Optional: auf einem bestimmten Node pinnen (Label vorher setzen)
+      # Pin to a specific node (set label first: docker node update --label-add scraper=true <node-id>)
       # placement:
       #   constraints:
       #     - node.labels.scraper == true

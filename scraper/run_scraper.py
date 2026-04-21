@@ -24,8 +24,8 @@ def main() -> None:
     parser.add_argument("--port",   type=int,   default=5000, help="Port für das Dashboard (Standard: 5000)")
     args = parser.parse_args()
 
-    from hoerspiel_discovery.worker import worker
-    from app import app
+    from scraper.worker import worker
+    from scraper.app import app
 
     if args.series:
         worker.delay = args.delay

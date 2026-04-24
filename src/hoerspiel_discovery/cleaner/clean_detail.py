@@ -134,7 +134,7 @@ def clean_detail_record(record: dict[str, Any]) -> dict[str, Any]:
         "genres": clean_genres(record.get("genres")),
         "previous_episode_url": clean_url(record.get("previous_episode_url")),
         "next_episode_url": clean_url(record.get("next_episode_url")),
-        "source_file": clean_text(record.get("source_file")),
+        "source_url": clean_text(record.get("source_url")),
     }
 
     return cleaned

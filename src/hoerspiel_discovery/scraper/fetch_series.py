@@ -46,30 +46,55 @@ def fetch_page(url: str, timeout: int = 20) -> str:
     return response.text
 
 
-def extract_episode_links(html: str, base_url: str) -> list[dict[str, str]]:
+def extract_episode_links(html: str, base_url: str) -> list[dict]:
     soup = BeautifulSoup(html, "lxml")
-    results: list[dict[str, str]] = []
-    seen_urls: set[str] = set()
+    results = []
+    seen = set()
 
-    for a_tag in soup.find_all("a", href=True):
-        href = a_tag["href"]
-        title = a_tag.get_text(strip=True)
-
-        if "hsp_anzeige.asp?code=" not in href:
+    for row in soup.find_all("tr"):
+        cells = row.find_all("td")
+        if len(cells) < 3:
             continue
 
-        absolute_url = urljoin(base_url, href)
-
-        if absolute_url in seen_urls:
-            continue
-
-        seen_urls.add(absolute_url)
-        results.append(
-            {
-                "url": absolute_url,
-                "title": title,
-            }
+        # Identify episode rows by series link in first cell
+        series_link = cells[0].find(
+            "a", href=lambda h: h and "hsp_serie.asp?serie=" in h
         )
+        if not series_link:
+            continue
+
+        series_name = series_link.get_text(strip=True)
+
+        # Episode number from second cell
+        episode_number_text = cells[1].get_text(strip=True).rstrip("\xa0").strip()
+        episode_number = int(episode_number_text) if episode_number_text.isdigit() else None
+
+        # Title cell — check for detail link or plain text
+        title_cell = cells[2]
+        detail_link = title_cell.find(
+            "a", href=lambda h: h and "hsp_anzeige.asp?code=" in h
+        )
+
+        if detail_link:
+            url = urljoin(base_url, detail_link["href"])
+            title = detail_link.get_text(strip=True)
+            has_detail_page = True
+        else:
+            url = None
+            title = title_cell.get_text(strip=True)
+            has_detail_page = False
+
+        if not title or title in seen:
+            continue
+
+        seen.add(title)
+        results.append({
+            "url":            url,
+            "title":          title,
+            "episode_number": episode_number,
+            "series_name":    series_name,
+            "has_detail_page": has_detail_page,
+        })
 
     return results
 

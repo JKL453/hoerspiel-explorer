@@ -207,6 +207,18 @@ def extract_next_episode_url(path_cell: Tag | None) -> str | None:
     return None
 
 
+def extract_source_url(path_cell) -> str | None:
+    if path_cell is None:
+        return None
+    detail_links = path_cell.find_all(
+        "a", href=lambda h: h and "hsp_anzeige.asp?code=" in h
+    )
+    if not detail_links:
+        return None
+    return urljoin("https://www.hoerspiele.de/", detail_links[0]["href"])
+
+
+
 def parse_detail_page(html: str) -> dict:
     soup = BeautifulSoup(html, "lxml")
     path_cell, description_cell, speakers_cell = get_detail_cells(soup)
@@ -226,6 +238,7 @@ def parse_detail_page(html: str) -> dict:
         "genres": extract_genres(soup),
         "previous_episode_url": extract_previous_episode_url(path_cell),
         "next_episode_url": extract_next_episode_url(path_cell),
+        "source_url": extract_source_url(path_cell),
     }
 
     return result

@@ -8,6 +8,25 @@ UNWANTED_GENRES = {
     "Award-Verdächtig!",
 }
 
+SPEAKER_NAME_WHITELIST: set[str] = {
+    # Add names here that should NOT be normalized
+    # e.g. "Caesar, Julius" if that's intentionally without umlaut
+}
+_ASCII_UMLAUT_PAIRS = [
+    ("Ae", "Ä"), ("Oe", "Ö"), ("Ue", "Ü"),
+    ("ae", "ä"), ("oe", "ö"), ("ue", "ü"),
+]
+
+def _normalize_umlaut(name: str) -> str:
+    """Replace ascii umlaut substitutes with real umlauts."""
+    for ascii_form, umlaut in _ASCII_UMLAUT_PAIRS:
+        name = name.replace(ascii_form, umlaut)
+    return name
+
+def _normalized_key(name: str) -> str:
+    """Normalize for comparison — lowercase + umlauts."""
+    return _normalize_umlaut(name).lower()
+
 
 def normalize_whitespace(value: str | None) -> str | None:
     if value is None:

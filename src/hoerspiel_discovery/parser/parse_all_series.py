@@ -25,7 +25,117 @@ def extract_series_id_from_html(html: str) -> int | None:
         return int(href.split("serie=")[1].split("&")[0])
     except (IndexError, ValueError):
         return None
+    
+def build_speaker_normalization_map(records: list[dict]) -> dict[str, str]:
+    """
+    Build a mapping from ascii-umlaut variants to the correct umlaut spelling.
+    Only normalizes when the umlaut version appears more often.
+    Respects SPEAKER_NAME_WHITELIST.
+    """
+    from collections import Counter
+    from hoerspiel_discovery.cleaner.clean_detail import (
+        SPEAKER_NAME_WHITELIST,
+        _normalized_key,
+        _normalize_umlaut,
+    )
 
+    # Count occurrences of each exact spelling
+    counts: Counter[str] = Counter()
+    for r in records:
+        for s in (r.get("speakers") or []):
+            name = s.get("speaker", "")
+            if name:
+                counts[name] += 1
+
+    # Group by normalized key
+    from collections import defaultdict
+    groups: dict[str, list[str]] = defaultdict(list)
+    for name in counts:
+        groups[_normalized_key(name)].append(name)
+
+    # Build map: variant → canonical (most common umlaut version wins)
+    normalization_map: dict[str, str] = {}
+    for norm_key, variants in groups.items():
+        if len(variants) == 1:
+            continue  # no conflict
+
+        # Find the umlaut version (the one that changes when normalized)
+        umlaut_variants = [v for v in variants if _normalize_umlaut(v) == v]
+        ascii_variants  = [v for v in variants if _normalize_umlaut(v) != v]
+
+        if not umlaut_variants or not ascii_variants:
+            continue  # no clear ascii vs umlaut split
+
+        # Pick most common umlaut version as canonical
+        canonical = max(umlaut_variants, key=lambda v: counts[v])
+
+        if canonical in SPEAKER_NAME_WHITELIST:
+            continue
+
+        for variant in ascii_variants:
+            if variant != canonical:
+                normalization_map[variant] = canonical
+                print(f"  Normalize: '{variant}' → '{canonical}'")
+
+    return normalization_map
+
+
+def apply_speaker_normalization(
+    records: list[dict],
+    norm_map: dict[str, str],
+) -> list[dict]:
+    for r in records:
+        for s in (r.get("speakers") or []):
+            original = s.get("speaker", "")
+            if original in norm_map:
+                s["speaker"] = norm_map[original]
+    return records
+
+def build_role_normalization_map(records: list[dict]) -> dict[str, str]:
+    """
+    Build a mapping for role name variants.
+    Most common spelling wins — handles capitalization and umlaut inconsistencies.
+    """
+    from collections import Counter, defaultdict
+    from hoerspiel_discovery.cleaner.clean_detail import _normalized_key
+
+    counts: Counter[str] = Counter()
+    for r in records:
+        for s in (r.get("speakers") or []):
+            role = s.get("role", "")
+            if role:
+                counts[role] += 1
+
+    groups: dict[str, list[str]] = defaultdict(list)
+    for role in counts:
+        groups[_normalized_key(role)].append(role)
+
+    normalization_map: dict[str, str] = {}
+    for norm_key, variants in groups.items():
+        if len(variants) == 1:
+            continue
+
+        # Most common spelling wins
+        canonical = max(variants, key=lambda v: counts[v])
+
+        for variant in variants:
+            if variant != canonical:
+                normalization_map[variant] = canonical
+                print(f"  Normalize role: '{variant}' → '{canonical}'")
+
+    return normalization_map
+
+
+def apply_role_normalization(
+    records: list[dict],
+    norm_map: dict[str, str],
+) -> list[dict]:
+    for r in records:
+        for s in (r.get("speakers") or []):
+            original = s.get("role", "")
+            if original in norm_map:
+                s["role"] = norm_map[original]
+    return records
 
 def main() -> None:
     INTERIM_DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -116,6 +226,18 @@ def main() -> None:
         if url:
             seen_urls.add(url)
         deduped.append(r)
+
+    # Normalize speaker names
+    print("\nBuilding speaker normalization map...")
+    norm_map = build_speaker_normalization_map(deduped)
+    print(f"Normalizing {len(norm_map)} name variants")
+    deduped = apply_speaker_normalization(deduped, norm_map)
+
+    # Normalize role names
+    print("\nBuilding role normalization map...")
+    role_norm_map = build_role_normalization_map(deduped)
+    print(f"Normalizing {len(role_norm_map)} role variants")
+    deduped = apply_role_normalization(deduped, role_norm_map)
 
     output_path = INTERIM_DATA_DIR / "cleaned_details.json"
     output_path.write_text(

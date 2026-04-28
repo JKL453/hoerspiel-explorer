@@ -14,15 +14,15 @@ This project aims to build a discovery platform that enables:
 
 ## Architecture
 
-Scraper → Parser → Cleaner → Supabase (PostgreSQL + pgvector) → RAG Pipeline → Next.js Frontend
+Scraper → Parser → Cleaner → Supabase (PostgreSQL + pgvector) → RAG Pipeline → Frontend
 
 ## Current Status
 
 - **Scraper**: operational — 24,000+ episodes collected across 1,400+ series
 - **Parser / Cleaner**: complete — speaker and role normalization, stub records for episodes without detail pages
 - **Database**: complete — normalized schema in Supabase (episodes, series, speakers, roles, genres)
-- **Embeddings**: in progress — generating vectors with OpenAI text-embedding-3-small
-- **RAG Pipeline**: in progress
+- **Embeddings**: complete — 12,900+ episodes embedded with OpenAI text-embedding-3-small (title, series, description, genres, speakers)
+- **RAG Pipeline**: complete — semantic search via pgvector + Google Gemini for response generation
 - **Frontend**: planned
 
 ## Modules
@@ -46,18 +46,21 @@ Normalized PostgreSQL schema hosted on Supabase:
 - `episodes`, `series`, `speakers`, `roles`, `genres`
 - junction tables for many-to-many relationships
 - `pgvector` extension for semantic similarity search
+- `ivfflat` index for fast approximate nearest neighbor search
 
 ### Embeddings & RAG
 - Episode embeddings generated with OpenAI `text-embedding-3-small`
-- Similarity search via pgvector
-- Conversational interface powered by Groq (cost-efficient, free tier)
+- Embedding text combines title, series, description, genres and speakers for richer semantic context
+- Similarity search via pgvector `match_episodes` function
+- Response generation with Google Gemini (free tier)
 
 ## Tech Stack
 
-- **Python** — scraping, parsing, cleaning, data loading
+- **Python** — scraping, parsing, cleaning, data loading, RAG pipeline
 - **BeautifulSoup / requests** — HTML parsing and HTTP
 - **Flask** — scraper dashboard
 - **pandas** — data exploration
 - **Supabase** — PostgreSQL + pgvector
 - **OpenAI** — text embeddings
+- **Google Gemini** — LLM inference (free tier)
 - **Docker / Docker Swarm** — containerized scraper deployment

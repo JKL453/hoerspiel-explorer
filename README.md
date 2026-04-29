@@ -64,3 +64,20 @@ Normalized PostgreSQL schema hosted on Supabase:
 - **OpenAI** — text embeddings
 - **Google Gemini** — LLM inference (free tier)
 - **Docker / Docker Swarm** — containerized scraper deployment
+
+## Cost Architecture
+
+A key design goal of this project is to minimize running costs while using production-grade infrastructure.
+
+| Component | Service | Cost |
+|---|---|---|
+| Database + Vector Search | Supabase Free Tier | $0/month |
+| Text Embeddings | OpenAI text-embedding-3-small | ~$0.02 one-time |
+| LLM Inference | Google Gemini Free Tier | $0/month |
+| Frontend Hosting | Azure Static Web Apps Free Tier | $0/month |
+| Scraper | Docker Swarm (self-hosted) | $0/month |
+| CI/CD | GitHub Actions | $0/month |
+
+The only significant cost was the one-time embedding generation (~$0.02 for 12,900 episodes).
+This approach demonstrates that production-ready AI applications can be built and operated
+at near-zero cost by combining free tiers strategically.

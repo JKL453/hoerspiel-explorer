@@ -25,6 +25,7 @@ dist/
 
 # Environment variables
 .env
+frontend/.env
 
 # Data (large / generated)
 data/raw/detail_pages/*

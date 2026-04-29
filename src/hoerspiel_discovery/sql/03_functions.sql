@@ -40,3 +40,24 @@ BEGIN
     LIMIT match_count;
 END;
 $$;
+
+
+CREATE OR REPLACE FUNCTION get_series_with_episode_count()
+RETURNS TABLE (
+    id          bigint,
+    name        text,
+    label       text,
+    episode_count bigint
+)
+LANGUAGE sql
+AS $$
+    SELECT 
+        s.id,
+        s.name,
+        s.label,
+        COUNT(e.id) as episode_count
+    FROM series s
+    LEFT JOIN episodes e ON e.series_id = s.id
+    GROUP BY s.id, s.name, s.label
+    ORDER BY episode_count DESC;
+$$;

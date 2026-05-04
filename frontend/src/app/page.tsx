@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import Link from 'next/link'
 
 interface Series {
   id: number
@@ -52,18 +53,17 @@ export default function HomePage() {
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((s) => (
-              <div
-                key={s.id}
-                className="border border-gray-200 rounded-lg p-4 hover:border-gray-400 transition-colors cursor-pointer"
-              >
-                <h2 className="font-semibold text-lg leading-tight">{s.name}</h2>
-                {s.label && s.label !== '?' && (
-                  <p className="text-sm text-gray-500 mt-1">{s.label}</p>
-                )}
-                <p className="text-sm font-medium mt-3 text-blue-600">
-                  {s.episode_count} Folgen
-                </p>
-              </div>
+              <Link href={`/series/${s.id}`} key={s.id}>
+                <div className="border border-gray-200 rounded-lg p-4 hover:border-gray-400 transition-colors cursor-pointer">
+                  <h2 className="font-semibold text-lg leading-tight">{s.name}</h2>
+                  {s.label && s.label !== '?' && (
+                    <p className="text-sm text-gray-500 mt-1">{s.label}</p>
+                  )}
+                  <p className="text-sm font-medium mt-3 text-blue-600">
+                    {s.episode_count} Folgen
+                  </p>
+                </div>
+              </Link>
             ))}
           </div>
         </>

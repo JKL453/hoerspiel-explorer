@@ -2,6 +2,10 @@
 
 A data-driven platform for discovering German audio dramas through structured metadata, semantic search, and AI-powered recommendations.
 
+## Live Demo
+
+[hoerspiel-explorer.azurestaticapps.net](https://lemon-flower-0536a4603.7.azurestaticapps.net)
+
 ## Project Goal
 
 Audio dramas (Hörspiele) are often difficult to explore beyond simple title or series search.
@@ -14,7 +18,11 @@ This project aims to build a discovery platform that enables:
 
 ## Architecture
 
-Scraper → Parser → Cleaner → Supabase (PostgreSQL + pgvector) → RAG Pipeline → Frontend
+```
+Scraper → Parser → Cleaner → Supabase (PostgreSQL + pgvector) → RAG Pipeline → Next.js Frontend
+                                                                                       ↕
+                                                                              Azure Static Web Apps
+```
 
 ## Current Status
 
@@ -23,7 +31,8 @@ Scraper → Parser → Cleaner → Supabase (PostgreSQL + pgvector) → RAG Pipe
 - **Database**: complete — normalized schema in Supabase (episodes, series, speakers, roles, genres)
 - **Embeddings**: complete — 12,900+ episodes embedded with OpenAI text-embedding-3-small (title, series, description, genres, speakers)
 - **RAG Pipeline**: complete — semantic search via pgvector + Google Gemini for response generation
-- **Frontend**: planned
+- **Frontend**: complete — series overview with search, episode detail pages, AI-powered chat interface
+- **Deployment**: complete — Azure Static Web Apps with GitHub Actions CI/CD
 
 ## Modules
 
@@ -54,6 +63,12 @@ Normalized PostgreSQL schema hosted on Supabase:
 - Similarity search via pgvector `match_episodes` function
 - Response generation with Google Gemini (free tier)
 
+### Frontend
+Next.js application with three main views:
+- **Series overview** — searchable grid of all 1,400+ series
+- **Episode detail** — full episode list with covers, descriptions and metadata
+- **Chat interface** — natural language recommendations powered by the RAG pipeline
+
 ## Tech Stack
 
 - **Python** — scraping, parsing, cleaning, data loading, RAG pipeline
@@ -63,6 +78,10 @@ Normalized PostgreSQL schema hosted on Supabase:
 - **Supabase** — PostgreSQL + pgvector
 - **OpenAI** — text embeddings
 - **Google Gemini** — LLM inference (free tier)
+- **Next.js** — frontend with App Router and TypeScript
+- **Tailwind CSS** — styling
+- **Azure Static Web Apps** — frontend hosting (free tier)
+- **GitHub Actions** — CI/CD pipeline
 - **Docker / Docker Swarm** — containerized scraper deployment
 
 ## Cost Architecture

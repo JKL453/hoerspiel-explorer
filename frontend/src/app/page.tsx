@@ -36,6 +36,13 @@ export default function HomePage() {
         {series.length} Serien · {series.reduce((acc, s) => acc + s.episode_count, 0).toLocaleString('de')} Episoden
       </p>
 
+      <Link
+        href="/chat"
+        className="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors mb-8"
+      >
+        🎧 Hörspiel-Empfehlungen
+      </Link>
+
       <input
         type="text"
         placeholder="Serie suchen..."

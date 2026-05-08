@@ -21,7 +21,7 @@ async function embedQuery(openai: OpenAI, query: string): Promise<number[]> {
   return response.data[0].embedding
 }
 
-async function searchEpisodes(supabase: ReturnType<typeof createClient>, embedding: number[], matchCount = 10) {
+async function searchEpisodes(supabase: any, embedding: number[], matchCount = 10) {
   const { data, error } = await supabase.rpc('match_episodes', {
     query_embedding: embedding,
     match_count: matchCount,

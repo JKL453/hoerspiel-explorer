@@ -2,14 +2,18 @@ import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { createClient } from '@supabase/supabase-js'
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+function getOpenAIClient() {
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+}
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+function getSupabaseClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+}
 
-async function embedQuery(query: string): Promise<number[]> {
+async function embedQuery(openai: OpenAI, query: string): Promise<number[]> {
   const response = await openai.embeddings.create({
     input: query,
     model: 'text-embedding-3-small',
@@ -17,7 +21,7 @@ async function embedQuery(query: string): Promise<number[]> {
   return response.data[0].embedding
 }
 
-async function searchEpisodes(embedding: number[], matchCount = 10) {
+async function searchEpisodes(supabase: ReturnType<typeof createClient>, embedding: number[], matchCount = 10) {
   const { data, error } = await supabase.rpc('match_episodes', {
     query_embedding: embedding,
     match_count: matchCount,
@@ -61,11 +65,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'query erforderlich' }, { status: 400 })
     }
 
+    const openai = getOpenAIClient()
+    const supabase = getSupabaseClient()
+
     // 1. Embed query
-    const embedding = await embedQuery(query)
+    const embedding = await embedQuery(openai, query)
 
     // 2. Vector search
-    const episodes = await searchEpisodes(embedding)
+    const episodes = await searchEpisodes(supabase, embedding)
 
     // 3. Build prompt
     const prompt = buildPrompt(query, episodes)

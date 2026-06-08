@@ -38,6 +38,13 @@ data/series_index.json
 # Logs
 *.log
 
+# dbt
+hoerspiel_dbt/logs/
+hoerspiel_dbt/target/
+hoerspiel_dbt/.user.yml
+
+logs/
+
 # IDE
 .vscode/
 .idea/

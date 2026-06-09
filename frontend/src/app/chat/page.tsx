@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import ReactMarkdown from 'react-markdown'
 
 interface Episode {
   id: number
@@ -89,11 +90,14 @@ export default function ChatPage() {
 
       {result && (
         <div className="flex flex-col gap-8">
-          {/* LLM Response */}
-          <div className="bg-blue-50 border border-blue-100 rounded-lg p-5">
-            <p className="text-sm font-semibold text-blue-700 mb-2">Empfehlung</p>
-            <p className="text-gray-800 whitespace-pre-wrap">{result.response}</p>
+        {/* LLM Response */}
+        <div className="bg-blue-50 border border-blue-100 rounded-lg p-5">
+          <p className="text-sm font-semibold text-blue-700 mb-3">Empfehlung</p>
+          <div className="text-gray-800 text-sm leading-relaxed [&>p]:mb-3 [&>ul]:list-disc [&>ul]:pl-5 [&>ul]:mb-3 [&>li]:mb-1 [&>strong]:font-semibold">
+            <ReactMarkdown>{result.response}</ReactMarkdown>
           </div>
+        </div>
+
 
           {/* Episodes */}
           <div>

@@ -44,18 +44,18 @@ function buildPrompt(query: string, episodes: any[]): string {
     })
     .join('\n\n')
 
-  return `Du bist ein Hörspiel-Experte und hilfst dabei, passende Hörspiele zu entdecken.
-Dir werden Hörspiele aus einer Datenbank bereitgestellt die semantisch zur Anfrage passen.
-Empfiehl die passendsten davon und erkläre kurz warum sie zur Anfrage passen.
-Antworte auf Deutsch, freundlich und enthusiastisch.
-Wenn keines der Hörspiele wirklich passt, sag das ehrlich.
+  return `Du bist ein sachkundiger Hörspiel-Kenner. Empfiehl passende Hörspiele auf Basis der Anfrage.
+
+Halte dich kurz und präzise. Erkläre in 1-2 Sätzen pro Empfehlung warum sie zur Anfrage passt.
+Formatiere die Empfehlungen als Markdown-Liste. Wenn keines der Hörspiele wirklich passt, sag das direkt.
+Antworte auf Deutsch.
 
 Anfrage: ${query}
 
 Gefundene Hörspiele:
 ${context}
 
-Empfehlung:`
+Empfehlungen:`
 }
 
 export async function POST(req: NextRequest) {

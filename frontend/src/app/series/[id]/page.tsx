@@ -66,9 +66,8 @@ export default async function SeriesPage({
 
       <div className="flex flex-col gap-3">
         {episodes.map((ep) => (
-          <div
-            key={ep.id}
-            className="border border-gray-200 rounded-lg p-4 hover:border-gray-400 transition-colors"
+        <Link href={`/episodes/${ep.id}`} key={ep.id}>
+          <div className="border border-gray-200 rounded-lg p-4 hover:border-gray-400 transition-colors cursor-pointer flex gap-4"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
@@ -101,7 +100,8 @@ export default async function SeriesPage({
               )}
             </div>
           </div>
-        ))}
+        </Link>
+                    ))}
       </div>
     </main>
   )

@@ -147,7 +147,7 @@ export default async function EpisodePage({
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
             Sprecher
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="flex flex-col">
             {speakers.map((s: any, i: number) => (
               <div key={i} className="flex justify-between text-sm py-2 border-b border-gray-100">
                 <span className="text-gray-500">{s.roles.name}</span>

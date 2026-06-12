@@ -61,3 +61,36 @@ AS $$
     GROUP BY s.id, s.name, s.label
     ORDER BY episode_count DESC;
 $$;
+
+
+CREATE OR REPLACE FUNCTION get_episodes_by_speaker(speaker_id_input bigint)
+RETURNS TABLE (
+    episode_id   bigint,
+    title        text,
+    series_name  text,
+    series_id    bigint,
+    episode_number bigint,
+    release_date date,
+    duration_minutes real,
+    cover_url    text,
+    role_name    text
+)
+LANGUAGE sql
+AS $$
+    SELECT
+        e.id as episode_id,
+        e.title,
+        s.name as series_name,
+        s.id as series_id,
+        e.episode_number,
+        e.release_date,
+        e.duration_minutes,
+        e.cover_url,
+        r.name as role_name
+    FROM episode_speakers es
+    JOIN episodes e ON e.id = es.episode_id
+    JOIN series s ON s.id = e.series_id
+    JOIN roles r ON r.id = es.role_id
+    WHERE es.speaker_id = speaker_id_input
+    ORDER BY s.name, e.episode_number;
+$$;

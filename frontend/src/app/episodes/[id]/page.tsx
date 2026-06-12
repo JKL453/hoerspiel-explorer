@@ -31,7 +31,7 @@ async function getSpeakers(episodeId: string) {
   const { data, error } = await supabase
     .from('episode_speakers')
     .select(`
-      speakers (name),
+      speakers (id, name),
       roles (name)
     `)
     .eq('episode_id', parseInt(episodeId))
@@ -151,7 +151,12 @@ export default async function EpisodePage({
             {speakers.map((s: any, i: number) => (
               <div key={i} className="flex justify-between text-sm py-2 border-b border-gray-100">
                 <span className="text-gray-500">{s.roles.name}</span>
-                <span className="font-medium">{s.speakers.name}</span>
+                <Link
+                  href={`/speakers/${s.speakers.id}`}
+                  className="font-medium text-blue-600 hover:underline text-right"
+                >
+                  {s.speakers.name}
+                </Link>
               </div>
             ))}
           </div>

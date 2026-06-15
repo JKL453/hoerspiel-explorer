@@ -18,8 +18,25 @@ export default function HomePage() {
 
   useEffect(() => {
     async function load() {
-      const { data, error } = await supabase.rpc('get_series_with_episode_count')
-      if (!error) setSeries(data)
+      let allSeries: Series[] = []
+      let from = 0
+      const PAGE_SIZE = 1000
+
+      while (true) {
+        const { data, error } = await supabase
+          .rpc('get_series_with_episode_count')
+          .range(from, from + PAGE_SIZE - 1)
+
+        if (error) break
+        if (!data || data.length === 0) break
+
+        allSeries = [...allSeries, ...data]
+
+        if (data.length < PAGE_SIZE) break
+        from += PAGE_SIZE
+      }
+
+      setSeries(allSeries)
       setLoading(false)
     }
     load()

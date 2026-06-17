@@ -94,3 +94,52 @@ AS $$
     WHERE es.speaker_id = speaker_id_input
     ORDER BY s.name, e.episode_number;
 $$;
+
+
+-- ----- --
+-- Stats --
+-- ----- --
+
+-- Episodes per year
+CREATE OR REPLACE FUNCTION get_episodes_per_year()
+RETURNS TABLE (year int, episode_count bigint)
+LANGUAGE sql
+AS $$
+    SELECT
+        EXTRACT(YEAR FROM release_date)::int AS year,
+        COUNT(*) AS episode_count
+    FROM episodes
+    WHERE release_date IS NOT NULL
+    GROUP BY year
+    ORDER BY year;
+$$;
+
+-- Top genres
+CREATE OR REPLACE FUNCTION get_top_genres(limit_count int DEFAULT 10)
+RETURNS TABLE (genre_name text, episode_count bigint)
+LANGUAGE sql
+AS $$
+    SELECT
+        g.name AS genre_name,
+        COUNT(*) AS episode_count
+    FROM episode_genres eg
+    JOIN genres g ON g.id = eg.genre_id
+    GROUP BY g.name
+    ORDER BY episode_count DESC
+    LIMIT limit_count;
+$$;
+
+-- Top labels
+CREATE OR REPLACE FUNCTION get_top_labels(limit_count int DEFAULT 10)
+RETURNS TABLE (label_name text, series_count bigint)
+LANGUAGE sql
+AS $$
+    SELECT
+        label AS label_name,
+        COUNT(*) AS series_count
+    FROM series
+    WHERE label IS NOT NULL AND label != '?'
+    GROUP BY label
+    ORDER BY series_count DESC
+    LIMIT limit_count;
+$$;

@@ -60,6 +60,13 @@ export default function HomePage() {
         🎧 Hörspiel-Empfehlungen
       </Link>
 
+      <Link
+        href="/stats"
+        className="inline-block border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:border-gray-500 transition-colors mb-8 ml-2"
+      >
+        📊 Statistiken
+      </Link>
+
       <input
         type="text"
         placeholder="Serie suchen..."

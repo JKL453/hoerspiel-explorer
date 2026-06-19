@@ -46,6 +46,9 @@ def fetch_page(url: str, timeout: int = 20) -> str:
     return response.text
 
 
+# Known table header values to skip
+TABLE_HEADERS = {"Serie", "Nr", "Titel", "Verlag", "Bestellen"}
+
 def extract_episode_links(html: str, base_url: str) -> list[dict]:
     soup = BeautifulSoup(html, "lxml")
     results = []
@@ -56,7 +59,6 @@ def extract_episode_links(html: str, base_url: str) -> list[dict]:
         if len(cells) < 3:
             continue
 
-        # Identify episode rows by series link in first cell
         series_link = cells[0].find(
             "a", href=lambda h: h and "hsp_serie.asp?serie=" in h
         )
@@ -65,11 +67,9 @@ def extract_episode_links(html: str, base_url: str) -> list[dict]:
 
         series_name = series_link.get_text(strip=True)
 
-        # Episode number from second cell
         episode_number_text = cells[1].get_text(strip=True).rstrip("\xa0").strip()
         episode_number = int(episode_number_text) if episode_number_text.isdigit() else None
 
-        # Title cell — check for detail link or plain text
         title_cell = cells[2]
         detail_link = title_cell.find(
             "a", href=lambda h: h and "hsp_anzeige.asp?code=" in h
@@ -84,15 +84,16 @@ def extract_episode_links(html: str, base_url: str) -> list[dict]:
             title = title_cell.get_text(strip=True)
             has_detail_page = False
 
-        if not title or title in seen:
+        # Skip table headers and empty titles
+        if not title or title in TABLE_HEADERS or title in seen:
             continue
 
         seen.add(title)
         results.append({
-            "url":            url,
-            "title":          title,
-            "episode_number": episode_number,
-            "series_name":    series_name,
+            "url":             url,
+            "title":           title,
+            "episode_number":  episode_number,
+            "series_name":     series_name,
             "has_detail_page": has_detail_page,
         })
 

@@ -14,6 +14,15 @@ from hoerspiel_discovery.parser.parse_detail import load_html, parse_detail_page
 from hoerspiel_discovery.cleaner.clean_detail import clean_detail_record
 
 
+def normalize_series_name(name: str | None) -> str | None:
+    """Remove 'Serien: ' prefix added by some series overview pages."""
+    if name is None:
+        return None
+    if name.startswith("Serien: "):
+        return name.removeprefix("Serien: ")
+    return name
+
+
 def extract_series_id_from_html(html: str) -> int | None:
     """Extract series ID from the series page HTML."""
     soup = BeautifulSoup(html, "lxml")
@@ -161,7 +170,7 @@ def main() -> None:
                 # Stub record — no detail page available
                 record = {
                     "title":            ep["title"],
-                    "series_name":      ep["series_name"],
+                    "series_name":      normalize_series_name(ep["series_name"]),
                     "episode_number":   ep["episode_number"],
                     "source_url":       None,
                     "description":      None,
@@ -187,7 +196,7 @@ def main() -> None:
                 # Detail page not scraped yet — stub with URL
                 record = {
                     "title":            ep["title"],
-                    "series_name":      ep["series_name"],
+                    "series_name":      normalize_series_name(ep["series_name"]),
                     "episode_number":   ep["episode_number"],
                     "source_url":       ep["url"],
                     "description":      None,

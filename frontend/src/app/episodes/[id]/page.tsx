@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import BackButton from '@/components/BackButton'
 
 async function getEpisode(id: string) {
   console.log('Fetching episode with id:', id)
@@ -52,6 +53,7 @@ export default async function EpisodePage({
   params,
 }: {
   params: { id: string }
+  searchParams: { from?: string }
 }) {
   const { id } = await params
   const [episode, speakers, genres] = await Promise.all([
@@ -66,14 +68,10 @@ export default async function EpisodePage({
 
   const series = episode.series as any
 
+
   return (
     <main className="max-w-3xl mx-auto px-4 py-10">
-      <Link
-        href={series ? `/series/${series.id}` : '/'}
-        className="text-sm text-blue-500 hover:underline mb-6 block"
-      >
-        ← {series ? series.name : 'Zurück'}
-      </Link>
+      <BackButton label={series ? `← ${series.name}` : '← Zurück'} />
 
       <div className="flex gap-6 mb-8">
         {episode.cover_url ? (

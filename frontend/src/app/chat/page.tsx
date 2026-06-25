@@ -106,8 +106,9 @@ export default function ChatPage() {
             </p>
             <div className="flex flex-col gap-3">
               {result.episodes.map((ep) => (
-                <div
+                <Link
                   key={ep.id}
+                  href={`/episodes/${ep.id}`}
                   className="border border-gray-200 rounded-lg p-4 flex gap-4"
                 >
                   {ep.cover_url && (
@@ -146,7 +147,7 @@ export default function ChatPage() {
                       </span>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>

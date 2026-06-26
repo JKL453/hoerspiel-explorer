@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import ReactMarkdown from 'react-markdown'
+
 
 interface Episode {
   id: number
@@ -27,11 +28,31 @@ export default function ChatPage() {
   const [result, setResult] = useState<ChatResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  // Restore state from sessionStorage on mount
+  useEffect(() => {
+    const saved = sessionStorage.getItem('chat_result')
+    const savedQuery = sessionStorage.getItem('chat_query')
+    if (saved) setResult(JSON.parse(saved))
+    if (savedQuery) setQuery(savedQuery)
+  }, [])
+
+  // Save state to sessionStorage whenever it changes
+  useEffect(() => {
+    if (result) {
+      sessionStorage.setItem('chat_result', JSON.stringify(result))
+    }
+    if (query) {
+      sessionStorage.setItem('chat_query', query)
+    }
+  }, [result, query])
+
   async function handleSubmit() {
     if (!query.trim()) return
     setLoading(true)
     setError(null)
     setResult(null)
+    // Clear old results when making new request
+    sessionStorage.removeItem('chat_result')
 
     try {
       const res = await fetch('/api/chat', {

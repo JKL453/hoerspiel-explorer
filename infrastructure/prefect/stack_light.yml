@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+  prefect-worker:
+    image: prefecthq/prefect:3-latest
+    environment:
+      - PREFECT_API_URL=https://api.prefect.cloud/api/accounts/{account-id}/workspaces/{workspace-id}
+      - PREFECT_API_KEY=${PREFECT_API_KEY}
+    command: prefect worker start --pool hoerspiel-pool
+    networks:
+      - default
+
+networks:
+  default:

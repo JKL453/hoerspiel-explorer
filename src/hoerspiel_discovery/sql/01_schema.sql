@@ -45,3 +45,14 @@ CREATE TABLE episode_genres (
     genre_id   INTEGER REFERENCES genres(id),
     PRIMARY KEY (episode_id, genre_id)
 );
+
+CREATE TABLE scrape_targets (
+    id              SERIAL PRIMARY KEY,
+    source          TEXT NOT NULL DEFAULT 'hoerspiele.de',
+    external_id     INTEGER NOT NULL,
+    status          TEXT NOT NULL DEFAULT 'pending',  -- pending | success | not_found | error
+    attempts        INTEGER NOT NULL DEFAULT 0,
+    last_attempt_at TIMESTAMPTZ,
+    error_message   TEXT,
+    UNIQUE (source, external_id)
+);

@@ -3,9 +3,11 @@ One-time script to seed scrape_targets with the full range of IDs
 to be scraped. Run manually before starting the Prefect scrape flow.
 """
 
+from dotenv import load_dotenv
 from supabase import create_client
 import os
 
+load_dotenv()
 supabase = create_client(os.environ["SUPABASE_URL"], os.environ["SUPABASE_KEY"])
 
 SOURCE = "hoerspiele.de"

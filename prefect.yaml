@@ -9,6 +9,9 @@ pull:
   - prefect.deployments.steps.pip_install_requirements:
       directory: "{{ clone_step.directory }}"
       requirements_file: requirements.txt
+  - prefect.deployments.steps.run_shell_script:
+      script: pip install -e .
+      directory: "{{ clone_step.directory }}"
   - prefect.deployments.steps.set_working_directory:
       directory: "{{ clone_step.directory }}"
 

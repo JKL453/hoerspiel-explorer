@@ -1,0 +1,19 @@
+name: hoerspiel-explorer
+prefect-version: 3.x
+
+pull:
+  - prefect.deployments.steps.git_clone:
+      id: clone_step
+      repository: https://github.com/JKL453/hoerspiel-explorer.git
+      branch: main
+  - prefect.deployments.steps.pip_install_requirements:
+      directory: "{{ clone_step.directory }}"
+      requirements_file: requirements.txt
+  - prefect.deployments.steps.set_working_directory:
+      directory: "{{ clone_step.directory }}"
+
+deployments:
+  - name: scrape-hoerspiele-de-series-pages
+    entrypoint: src/hoerspiel_discovery/flows/scrape_series_pages.py:scrape_hoerspiele_de
+    work_pool:
+      name: data-platform

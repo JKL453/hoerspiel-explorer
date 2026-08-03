@@ -27,10 +27,22 @@ def update_scrape_target_status(result: dict, error: str | None = None):
 
 def get_pending_targets() -> list[int]:
     """Not a Prefect task — plain helper, called once at flow start."""
-    response = (
-        supabase.table("scrape_targets")
-        .select("external_id")
-        .in_("status", ["pending", "error"])
-        .execute()
-    )
-    return [row["external_id"] for row in response.data]
+    all_ids = []
+    page_size = 1000
+    offset = 0
+
+    while True:
+        response = (
+            supabase.table("scrape_targets")
+            .select("external_id")
+            .in_("status", ["pending", "error"])
+            .range(offset, offset + page_size -1)
+            .execute()
+        )
+        rows = response.data
+        if not rows:
+            break
+        all_ids.extend(row["external_id"] for row in rows)
+        offset += page_size
+
+    return all_ids

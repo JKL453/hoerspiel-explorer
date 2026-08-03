@@ -5,7 +5,7 @@ import httpx
 SERIES_PAGES_DIR = Path("/data/hoerspiel-explorer/raw/series_pages")
 
 
-@task(retries=3, retry_delay_seconds=[10, 30, 90], log_prints=True)
+@task(retries=3, retry_delay_seconds=[10, 30], log_prints=True)
 def fetch_series_page(external_id: int) -> dict:
     """
     Fetches a single series page by ID and stores the raw HTML on disk.

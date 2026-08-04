@@ -46,3 +46,26 @@ def get_pending_targets() -> list[int]:
         offset += page_size
 
     return all_ids
+
+
+def get_scraped_series() -> list[dict]:
+    """Returns external_id and html_path for all successfully scraped series."""
+    all_rows = []
+    page_size = 1000
+    offset = 0
+
+    while True:
+        response = (
+            supabase.table("scrape_targets")
+            .select("external_id, html_path")
+            .eq("status", "success")
+            .range(offset, offset + page_size - 1)
+            .execute()
+        )
+        rows = response.data
+        if not rows:
+            break
+        all_rows.extend(rows)
+        offset += page_size
+
+    return all_rows

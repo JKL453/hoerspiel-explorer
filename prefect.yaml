@@ -20,3 +20,8 @@ deployments:
     entrypoint: src/hoerspiel_discovery/flows/scrape_series_pages.py:scrape_hoerspiele_de
     work_pool:
       name: data-platform
+
+  - name: parse-series-pages
+    entrypoint: src/hoerspiel_discovery/flows/parse_series_pages.py:parse_all_series_pages
+    work_pool:
+      name: data-platform

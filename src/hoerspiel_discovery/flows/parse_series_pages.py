@@ -10,12 +10,10 @@ def parse_all_series_pages():
     print(f"Found {len(series)} scraped series pages to parse.")
 
     total_episodes = 0
-    for entry in series:
+    for i, entry in enumerate(series, start=1):
         count = parse_series_page(entry["external_id"], entry["html_path"])
         total_episodes += count
+        if i % 100 == 0:
+            print(f"Progress: {i}/{len(series)} series processed, {total_episodes} episodes so far.")
 
     print(f"Done. {total_episodes} episode targets added.")
-
-
-if __name__ == "__main__":
-    parse_all_series_pages()

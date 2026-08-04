@@ -13,13 +13,8 @@ def _extract_code_from_url(url: str) -> int | None:
     return int(match.group(1)) if match else None
 
 
-@task
+@task(log_prints=True)
 def parse_series_page(external_id: int, html_path: str) -> int:
-    """
-    Reads a stored series page and adds episodes WITH a detail page
-    to episode_targets for scraping. Episodes without a detail page
-    are captured later during final parsing into the episodes table.
-    """
     html = Path(html_path).read_text(encoding="utf-8")
     episodes = extract_episode_links(html, base_url=BASE_URL)
 
@@ -38,4 +33,5 @@ def parse_series_page(external_id: int, html_path: str) -> int:
             rows, on_conflict="episode_code"
         ).execute()
 
+    print(f"Series {external_id}: {len(rows)} episode(s) with detail page found.")
     return len(rows)

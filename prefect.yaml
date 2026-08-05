@@ -25,3 +25,8 @@ deployments:
     entrypoint: src/hoerspiel_discovery/flows/parse_series_pages.py:parse_all_series_pages
     work_pool:
       name: data-platform
+
+  - name: fetch-episode-pages
+    entrypoint: src/hoerspiel_discovery/flows/fetch_episode_pages.py:fetch_all_episode_pages
+    work_pool:
+      name: data-platform

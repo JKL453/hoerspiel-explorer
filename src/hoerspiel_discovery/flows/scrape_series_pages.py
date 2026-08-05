@@ -12,13 +12,20 @@ def scrape_hoerspiele_de():
     targets = get_pending_targets()
     print(f"Found {len(targets)} targets to scrape.")
 
-    for target_id in targets:
+    for target in targets:
+        target_id = target["external_id"]
         try:
             result = fetch_series_page(target_id)
+            result["attempts"] = target["attempts"]
             update_scrape_target_status(result)
         except Exception as e:
             update_scrape_target_status(
-                {"external_id": target_id, "status": "error", "html_path": None},
+                {
+                    "external_id": target_id,
+                    "attempts": target["attempts"],
+                    "status": "error",
+                    "html_path": None,
+                },
                 error=str(e),
             )
 

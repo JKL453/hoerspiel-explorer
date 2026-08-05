@@ -45,7 +45,9 @@ def fetch_episode_page(episode_code: int, attempts: int) -> dict:
     url = f"https://www.hoerspiele.de/hsp_anzeige.asp?code={episode_code}"
 
     # Keep request frequency low for the source website.
+    print(f"Episode {episode_code}: waiting 3 seconds before request.")
     time.sleep(3.0)
+    print(f"Episode {episode_code}: requesting {url}")
 
     try:
         response = httpx.get(url, timeout=15.0)
@@ -53,6 +55,7 @@ def fetch_episode_page(episode_code: int, attempts: int) -> dict:
         raise RuntimeError(f"Transient error for episode {episode_code}: {e}")
 
     if response.status_code == 404:
+        print(f"Episode {episode_code}: detail page not found (404).")
         return {
             "episode_code": episode_code,
             "attempts": attempts,
@@ -70,6 +73,7 @@ def fetch_episode_page(episode_code: int, attempts: int) -> dict:
     DETAIL_PAGES_DIR.mkdir(parents=True, exist_ok=True)
     path = DETAIL_PAGES_DIR / build_file_name(url)
     path.write_text(response.text, encoding="utf-8")
+    print(f"Episode {episode_code}: saved HTML to {path}")
 
     return {
         "episode_code": episode_code,

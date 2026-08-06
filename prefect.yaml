@@ -30,3 +30,11 @@ deployments:
     entrypoint: src/hoerspiel_discovery/flows/fetch_episode_pages.py:fetch_all_episode_pages
     work_pool:
       name: data-platform
+
+  - name: build-cleaned-details
+    entrypoint: src/hoerspiel_discovery/flows/build_cleaned_details.py:build_cleaned_details
+    work_pool:
+      name: data-platform
+      job_variables:
+        env:
+          HOERSPIEL_DATA_DIR: /data/hoerspiel-explorer

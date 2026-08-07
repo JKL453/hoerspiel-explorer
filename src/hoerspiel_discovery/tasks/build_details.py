@@ -133,25 +133,14 @@ def _parse_episode(
 
 
 def _deduplicate(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    seen_urls: set[str] = set()
-    seen_stubs: set[tuple[Any, Any, Any]] = set()
+    seen_source_keys: set[str] = set()
     deduplicated = []
 
     for record in records:
-        source_url = record.get("source_url")
-        if source_url:
-            if source_url in seen_urls:
-                continue
-            seen_urls.add(source_url)
-        else:
-            key = (
-                record.get("series_name"),
-                record.get("episode_number"),
-                record.get("title"),
-            )
-            if key in seen_stubs:
-                continue
-            seen_stubs.add(key)
+        source_key = record["source_key"]
+        if source_key in seen_source_keys:
+            continue
+        seen_source_keys.add(source_key)
         deduplicated.append(record)
 
     return deduplicated

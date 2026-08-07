@@ -53,6 +53,8 @@ def _series_html() -> str:
 def _valid_record(**overrides):
     record = build_details._build_stub(_episode())
     record.update(overrides)
+    if "source_key" not in overrides:
+        record["source_key"] = build_details._build_source_key(record)
     return record
 
 
@@ -107,6 +109,18 @@ def test_deduplicate_uses_url_and_stub_identity():
     result = build_details._deduplicate([url_record, url_record.copy(), stub, stub.copy()])
 
     assert result == [url_record, stub]
+
+
+def test_deduplicate_uses_normalized_stub_source_key():
+    first = _valid_record(source_url=None)
+    first["source_key"] = build_details._build_source_key(first)
+    variant = first.copy()
+    variant["series_name"] = "  TEST   SERIES "
+    variant["title"] = "TEST EPISODE"
+    variant["source_key"] = build_details._build_source_key(variant)
+
+    assert variant["source_key"] == first["source_key"]
+    assert build_details._deduplicate([first, variant]) == [first]
 
 
 def test_speaker_and_role_normalization_uses_global_frequency():

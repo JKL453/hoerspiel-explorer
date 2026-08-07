@@ -137,8 +137,21 @@ def test_validation_rejects_empty_and_duplicate_records():
         build_details._validate_records([])
 
     record = _valid_record()
-    with pytest.raises(ValueError, match="duplicate source_url"):
+    with pytest.raises(ValueError, match="duplicate source_key"):
         build_details._validate_records([record, record.copy()])
+
+
+def test_source_keys_are_stable_and_distinguish_episode_types():
+    linked = _valid_record()
+    same_linked = linked.copy()
+    stub = _valid_record(source_url=None)
+    stub["source_key"] = build_details._build_source_key(stub)
+
+    assert linked["source_key"] == "hoerspiele.de:episode:42"
+    assert build_details._build_source_key(same_linked) == linked["source_key"]
+    assert stub["source_key"].startswith("hoerspiele.de:stub:")
+    assert build_details._build_source_key(stub) == stub["source_key"]
+    assert stub["source_key"] != linked["source_key"]
 
 
 def test_publish_replaces_final_file_only_after_validation(monkeypatch, tmp_path):

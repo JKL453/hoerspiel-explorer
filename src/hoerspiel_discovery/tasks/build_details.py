@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import hashlib
 import json
+import re
+import unicodedata
 from pathlib import Path
 from typing import Any
 
@@ -41,6 +44,7 @@ RECORD_KEYS = {
     "previous_episode_url",
     "next_episode_url",
     "source_url",
+    "source_key",
 }
 
 
@@ -54,8 +58,40 @@ def _write_json_atomically(path: Path, records: list[dict[str, Any]]) -> None:
     temporary_path.replace(path)
 
 
+def _identity_part(value: Any) -> str:
+    if value is None:
+        return ""
+    normalized = unicodedata.normalize("NFKC", str(value))
+    return " ".join(normalized.split()).casefold()
+
+
+def _build_source_key(record: dict[str, Any]) -> str:
+    source_url = record.get("source_url")
+    if source_url:
+        match = re.search(r"[?&]code=(\d+)", source_url)
+        if match:
+            return f"hoerspiele.de:episode:{match.group(1)}"
+        digest = hashlib.sha256(source_url.encode("utf-8")).hexdigest()
+        return f"hoerspiele.de:episode-url:{digest}"
+
+    identity = "\x1f".join(
+        (
+            _identity_part(record.get("series_name")),
+            _identity_part(record.get("episode_number")),
+            _identity_part(record.get("title")),
+        )
+    )
+    digest = hashlib.sha256(identity.encode("utf-8")).hexdigest()
+    return f"hoerspiele.de:stub:{digest}"
+
+
+def _add_source_key(record: dict[str, Any]) -> dict[str, Any]:
+    record["source_key"] = _build_source_key(record)
+    return record
+
+
 def _build_stub(episode: dict[str, Any]) -> dict[str, Any]:
-    return {
+    return _add_source_key({
         "title": episode["title"],
         "series_name": normalize_series_name(episode["series_name"]),
         "episode_number": episode["episode_number"],
@@ -70,7 +106,7 @@ def _build_stub(episode: dict[str, Any]) -> dict[str, Any]:
         "genres": [],
         "previous_episode_url": None,
         "next_episode_url": None,
-    }
+    })
 
 
 def _parse_episode(
@@ -90,7 +126,7 @@ def _parse_episode(
         cleaned = clean_detail_record(parsed)
         if not cleaned["title"] or not cleaned["series_name"]:
             raise ValueError("parsed detail page has no title or series name")
-        return cleaned, "with_detail", None
+        return _add_source_key(cleaned), "with_detail", None
     except Exception as exc:
         error = f"{detail_path}: {type(exc).__name__}: {exc}"
         return _build_stub(episode), "stub_parse_error", error
@@ -138,6 +174,7 @@ def _validate_records(records: list[dict[str, Any]]) -> dict[str, int]:
         raise ValueError("candidate contains no records")
 
     seen_urls: set[str] = set()
+    seen_source_keys: set[str] = set()
     speakers: set[str] = set()
     roles: set[str] = set()
     genres: set[str] = set()
@@ -155,6 +192,12 @@ def _validate_records(records: list[dict[str, Any]]) -> dict[str, int]:
             raise ValueError(f"record {index} has non-list genres")
 
         source_url = record["source_url"]
+        source_key = record["source_key"]
+        if not source_key:
+            raise ValueError(f"record {index} has an empty source_key")
+        if source_key in seen_source_keys:
+            raise ValueError(f"duplicate source_key: {source_key}")
+        seen_source_keys.add(source_key)
         if source_url:
             if source_url in seen_urls:
                 raise ValueError(f"duplicate source_url: {source_url}")

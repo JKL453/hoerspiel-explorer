@@ -38,3 +38,11 @@ deployments:
       job_variables:
         env:
           HOERSPIEL_DATA_DIR: /data/hoerspiel-explorer
+
+  - name: load-cleaned-details
+    entrypoint: src/hoerspiel_discovery/flows/load_cleaned_details.py:load_cleaned_details
+    work_pool:
+      name: data-platform
+      job_variables:
+        env:
+          HOERSPIEL_DATA_DIR: /data/hoerspiel-explorer

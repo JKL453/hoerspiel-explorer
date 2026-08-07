@@ -14,6 +14,7 @@ CREATE TABLE episodes (
     release_date     DATE,
     cover_url        TEXT,
     order_number     TEXT,
+    source_key       TEXT NOT NULL UNIQUE,
     source_url       TEXT UNIQUE,
     embedding        vector(1536)
 );

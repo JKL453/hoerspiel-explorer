@@ -141,17 +141,12 @@ def load_episodes(
         batch = records[i:i + BATCH_SIZE]
         print(f"  Episodes {i + 1}–{min(i + BATCH_SIZE, len(records))} / {len(records)}")
 
-        # 1. Upsert episodes — deduplicate within batch by source_url
-        seen_in_batch: set[str] = set()
+        # 1. Upsert episodes using the stable identity shared with Prefect.
         episode_rows = []
         for r in batch:
-            source_url = r.get("source_url")
-            if source_url and source_url in seen_in_batch:
-                continue
-            if source_url:
-                seen_in_batch.add(source_url)
             series_id = series_map.get(r.get("series_name"))
             episode_rows.append({
+                "source_key":       r.get("source_key"),
                 "series_id":        series_id,
                 "episode_number":   r.get("episode_number"),
                 "title":            r.get("title"),
@@ -160,28 +155,25 @@ def load_episodes(
                 "release_date":     parse_date(r.get("release_date")),
                 "cover_url":        r.get("cover_url"),
                 "order_number":     r.get("order_number"),
-                "source_url":       source_url,
+                "source_url":       r.get("source_url"),
             })
 
         client.table("episodes").upsert(
-            episode_rows, on_conflict="source_url"
+            episode_rows, on_conflict="source_key"
         ).execute()
 
-        # Build source_url → episode id map for this batch
-        source_urls = [r.get("source_url") for r in batch if r.get("source_url")]
-        if not source_urls:
-            continue
-
-        ep_result = client.table("episodes").select("id, source_url").in_(
-            "source_url", source_urls
+        # Build source_key → episode id map for this batch
+        source_keys = [r["source_key"] for r in batch]
+        ep_result = client.table("episodes").select("id, source_key").in_(
+            "source_key", source_keys
         ).execute()
-        ep_map = {e["source_url"]: e["id"] for e in ep_result.data}
+        ep_map = {e["source_key"]: e["id"] for e in ep_result.data}
 
         # 2. Episode genres — deduplicate
         genre_rows = []
         seen_genre_pairs: set[tuple] = set()
         for r in batch:
-            ep_id = ep_map.get(r.get("source_url"))
+            ep_id = ep_map.get(r["source_key"])
             if not ep_id:
                 continue
             for g in (r.get("genres") or []):
@@ -201,7 +193,7 @@ def load_episodes(
         speaker_rows = []
         seen_speaker_triples: set[tuple] = set()
         for r in batch:
-            ep_id = ep_map.get(r.get("source_url"))
+            ep_id = ep_map.get(r["source_key"])
             if not ep_id:
                 continue
             for s in (r.get("speakers") or []):

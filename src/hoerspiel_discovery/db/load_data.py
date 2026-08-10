@@ -12,10 +12,25 @@ from hoerspiel_discovery.config import INTERIM_DATA_DIR
 load_dotenv()
 
 
+def get_backend_key() -> str:
+    key = os.environ.get("SUPABASE_SECRET_KEY") or os.environ.get(
+        "SUPABASE_SERVICE_ROLE_KEY"
+    )
+    if not key:
+        raise RuntimeError(
+            "Backend database writes require SUPABASE_SECRET_KEY "
+            "(preferred) or SUPABASE_SERVICE_ROLE_KEY."
+        )
+    if key.startswith("sb_publishable_"):
+        raise RuntimeError(
+            "A publishable Supabase key cannot perform backend writes through RLS."
+        )
+    return key
+
+
 def get_client() -> Client:
     url = os.environ["SUPABASE_URL"]
-    key = os.environ["SUPABASE_KEY"]
-    return create_client(url, key)
+    return create_client(url, get_backend_key())
 
 
 def load_records() -> list[dict]:

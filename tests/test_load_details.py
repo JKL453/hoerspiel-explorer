@@ -3,6 +3,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from hoerspiel_discovery.db import load_data
 from hoerspiel_discovery.tasks import build_details, load_details
 
 
@@ -129,6 +130,16 @@ def test_preflight_rejects_invalid_date_and_duplicate_key():
 
     with pytest.raises(ValueError, match="duplicate source_key"):
         load_details._build_manifest([record, record.copy()])
+
+
+def test_backend_key_requires_a_server_side_secret(monkeypatch):
+    monkeypatch.delenv("SUPABASE_SECRET_KEY", raising=False)
+    monkeypatch.delenv("SUPABASE_SERVICE_ROLE_KEY", raising=False)
+    with pytest.raises(RuntimeError, match="SUPABASE_SECRET_KEY"):
+        load_data.get_backend_key()
+
+    monkeypatch.setenv("SUPABASE_SECRET_KEY", "sb_secret_test")
+    assert load_data.get_backend_key() == "sb_secret_test"
 
 
 def test_series_dimension_prefers_non_null_label():

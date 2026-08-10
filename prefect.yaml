@@ -46,3 +46,8 @@ deployments:
       job_variables:
         env:
           HOERSPIEL_DATA_DIR: /data/hoerspiel-explorer
+
+  - name: repair-page-encodings
+    entrypoint: src/hoerspiel_discovery/flows/repair_page_encodings.py:repair_page_encodings
+    work_pool:
+      name: data-platform

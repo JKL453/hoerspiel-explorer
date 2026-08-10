@@ -10,6 +10,11 @@ SERIES_PAGES_DIR = Path("/data/hoerspiel-explorer/raw/series_pages")
 DETAIL_PAGES_DIR = Path("/data/hoerspiel-explorer/raw/detail_pages")
 
 
+def decode_hoerspiele_html(content: bytes) -> str:
+    """Decode the legacy website explicitly; its responses omit a charset."""
+    return content.decode("cp1252")
+
+
 @task(retries=3, retry_delay_seconds=[10, 30], log_prints=True)
 def fetch_series_page(external_id: int) -> dict:
     """
@@ -34,7 +39,7 @@ def fetch_series_page(external_id: int) -> dict:
 
     SERIES_PAGES_DIR.mkdir(parents=True, exist_ok=True)
     path = SERIES_PAGES_DIR / f"{external_id}.html"
-    path.write_text(response.text, encoding="utf-8")
+    path.write_text(decode_hoerspiele_html(response.content), encoding="utf-8")
 
     return {"external_id": external_id, "status": "success", "html_path": str(path)}
 
@@ -72,7 +77,7 @@ def fetch_episode_page(episode_code: int, attempts: int) -> dict:
 
     DETAIL_PAGES_DIR.mkdir(parents=True, exist_ok=True)
     path = DETAIL_PAGES_DIR / build_file_name(url)
-    path.write_text(response.text, encoding="utf-8")
+    path.write_text(decode_hoerspiele_html(response.content), encoding="utf-8")
     print(f"Episode {episode_code}: saved HTML to {path}")
 
     return {

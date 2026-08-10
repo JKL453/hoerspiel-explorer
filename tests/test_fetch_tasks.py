@@ -13,9 +13,15 @@ def _response(status_code: int, text: str = "") -> SimpleNamespace:
 
     return SimpleNamespace(
         status_code=status_code,
-        text=text,
+        content=text.encode("cp1252"),
         raise_for_status=raise_for_status,
     )
+
+
+def test_decode_hoerspiele_html_uses_windows_1252():
+    content = "Änne hört: „Hallo“ – groß!".encode("cp1252")
+
+    assert fetch.decode_hoerspiele_html(content) == "Änne hört: „Hallo“ – groß!"
 
 
 def test_fetch_episode_page_saves_html(monkeypatch, tmp_path):

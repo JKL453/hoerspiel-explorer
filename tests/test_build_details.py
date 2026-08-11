@@ -155,6 +155,15 @@ def test_validation_rejects_empty_and_duplicate_records():
         build_details._validate_records([record, record.copy()])
 
 
+def test_validation_rejects_replacement_characters_in_nested_values():
+    record = _valid_record(
+        speakers=[{"speaker": "B�r", "role": "Erzähler"}],
+    )
+
+    with pytest.raises(ValueError, match=r"U\+FFFD"):
+        build_details._validate_records([record])
+
+
 def test_source_keys_are_stable_and_distinguish_episode_types():
     linked = _valid_record()
     same_linked = linked.copy()

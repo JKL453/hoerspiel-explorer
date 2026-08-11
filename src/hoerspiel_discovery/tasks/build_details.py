@@ -46,6 +46,7 @@ RECORD_KEYS = {
     "source_url",
     "source_key",
 }
+REPLACEMENT_CHARACTER = "\ufffd"
 
 
 def _write_json_atomically(path: Path, records: list[dict[str, Any]]) -> None:
@@ -158,6 +159,16 @@ def _is_stub(record: dict[str, Any]) -> bool:
     )
 
 
+def _contains_replacement_character(value: Any) -> bool:
+    if isinstance(value, str):
+        return REPLACEMENT_CHARACTER in value
+    if isinstance(value, dict):
+        return any(_contains_replacement_character(item) for item in value.values())
+    if isinstance(value, list):
+        return any(_contains_replacement_character(item) for item in value)
+    return False
+
+
 def _validate_records(records: list[dict[str, Any]]) -> dict[str, int]:
     if not records:
         raise ValueError("candidate contains no records")
@@ -179,6 +190,10 @@ def _validate_records(records: list[dict[str, Any]]) -> dict[str, int]:
             raise ValueError(f"record {index} has non-list speakers")
         if not isinstance(record["genres"], list):
             raise ValueError(f"record {index} has non-list genres")
+        if _contains_replacement_character(record):
+            raise ValueError(
+                f"record {index} contains Unicode replacement character U+FFFD"
+            )
 
         source_url = record["source_url"]
         source_key = record["source_key"]

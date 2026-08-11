@@ -12,7 +12,10 @@ DETAIL_PAGES_DIR = Path("/data/hoerspiel-explorer/raw/detail_pages")
 
 def decode_hoerspiele_html(content: bytes) -> str:
     """Decode the legacy website explicitly; its responses omit a charset."""
-    return content.decode("cp1252")
+    # Three known source pages contain undefined byte 0x81 where an umlaut
+    # belongs: either instead of ü or directly after an existing ü byte.
+    repaired = content.replace(b"\xfc\x81", b"\xfc").replace(b"\x81", b"\xfc")
+    return repaired.decode("cp1252")
 
 
 @task(retries=3, retry_delay_seconds=[10, 30], log_prints=True)

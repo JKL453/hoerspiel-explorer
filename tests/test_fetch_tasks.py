@@ -24,6 +24,17 @@ def test_decode_hoerspiele_html_uses_windows_1252():
     assert fetch.decode_hoerspiele_html(content) == "Änne hört: „Hallo“ – groß!"
 
 
+@pytest.mark.parametrize(
+    ("content", "expected"),
+    [
+        (b"Die Prophezeiung erf\x81llt sich", "Die Prophezeiung erfüllt sich"),
+        (b"Der Fr\xfc\x81hling ist da", "Der Frühling ist da"),
+    ],
+)
+def test_decode_hoerspiele_html_repairs_known_0x81_anomaly(content, expected):
+    assert fetch.decode_hoerspiele_html(content) == expected
+
+
 def test_fetch_episode_page_saves_html(monkeypatch, tmp_path):
     monkeypatch.setattr(fetch, "DETAIL_PAGES_DIR", tmp_path)
     monkeypatch.setattr(fetch.time, "sleep", lambda _: None)

@@ -19,9 +19,10 @@ This project aims to build a discovery platform that enables:
 ## Architecture
 
 ```
-Scraper → Parser → Cleaner → Supabase (PostgreSQL + pgvector) → RAG Pipeline → Next.js Frontend
-                                                                                       ↕
-                                                                              Azure Static Web Apps
+Scraper → Prefect → Supabase → dbt analytics → Next.js dashboard
+                     └──────→ pgvector/RAG  → Next.js chat
+                                                    ↓
+                                         Azure Static Web Apps
 ```
 
 ## Current Status
@@ -33,6 +34,7 @@ Scraper → Parser → Cleaner → Supabase (PostgreSQL + pgvector) → RAG Pipe
 - **RAG Pipeline**: complete — semantic search via pgvector + Google Gemini for response generation
 - **Frontend**: complete — series overview with search, episode detail pages, AI-powered chat interface
 - **Deployment**: complete — Azure Static Web Apps with GitHub Actions CI/CD
+- **Analytics**: dbt staging, tested marts, Prefect orchestration, and an interactive dashboard
 
 ## Modules
 
@@ -68,6 +70,7 @@ Next.js application with three main views:
 - **Series overview** — searchable grid of all 1,400+ series
 - **Episode detail** — full episode list with covers, descriptions and metadata
 - **Chat interface** — natural language recommendations powered by the RAG pipeline
+- **Analytics showcase** — year-filtered trends, publishers, speakers, durations, and franchises backed by dbt marts
 
 ## Tech Stack
 
@@ -76,6 +79,8 @@ Next.js application with three main views:
 - **Flask** — scraper dashboard
 - **pandas** — data exploration
 - **Supabase** — PostgreSQL + pgvector
+- **dbt** — tested staging models, analytics marts, lineage, and documentation
+- **Prefect** — observable scraping, loading, and analytics flows on a self-hosted worker
 - **OpenAI** — text embeddings
 - **Google Gemini** — LLM inference (free tier)
 - **Next.js** — frontend with App Router and TypeScript

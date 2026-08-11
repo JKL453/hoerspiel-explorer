@@ -1,0 +1,76 @@
+version: 2
+
+sources:
+  - name: hoerspiel
+    description: Relational application tables loaded from cleaned_details.json.
+    schema: public
+    tables:
+      - name: series
+        columns:
+          - name: id
+            data_tests: [not_null, unique]
+          - name: name
+            data_tests: [not_null, unique]
+      - name: episodes
+        columns:
+          - name: id
+            data_tests: [not_null, unique]
+          - name: source_key
+            data_tests: [not_null, unique]
+          - name: series_id
+            data_tests:
+              - relationships:
+                  to: source('hoerspiel', 'series')
+                  field: id
+      - name: speakers
+        columns:
+          - name: id
+            data_tests: [not_null, unique]
+          - name: name
+            data_tests: [not_null, unique]
+      - name: roles
+        columns:
+          - name: id
+            data_tests: [not_null, unique]
+          - name: name
+            data_tests: [not_null, unique]
+      - name: genres
+        columns:
+          - name: id
+            data_tests: [not_null, unique]
+          - name: name
+            data_tests: [not_null, unique]
+      - name: episode_speakers
+        columns:
+          - name: episode_id
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('hoerspiel', 'episodes')
+                  field: id
+          - name: speaker_id
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('hoerspiel', 'speakers')
+                  field: id
+          - name: role_id
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('hoerspiel', 'roles')
+                  field: id
+      - name: episode_genres
+        columns:
+          - name: episode_id
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('hoerspiel', 'episodes')
+                  field: id
+          - name: genre_id
+            data_tests:
+              - not_null
+              - relationships:
+                  to: source('hoerspiel', 'genres')
+                  field: id

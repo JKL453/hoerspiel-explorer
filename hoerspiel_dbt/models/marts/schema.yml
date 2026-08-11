@@ -1,0 +1,88 @@
+version: 2
+
+models:
+  - name: mart_episode_facts
+    description: One analytics-ready record per episode, enriched with series, label and franchise.
+    columns:
+      - {name: episode_id, description: Product episode identifier, data_tests: [not_null, unique]}
+      - {name: source_key, description: Stable ingestion identifier, data_tests: [not_null, unique]}
+      - {name: series_id, description: Parent series identifier, data_tests: [not_null]}
+      - {name: series_name, description: Clean series display name, data_tests: [not_null]}
+      - {name: label_name, description: Publisher label}
+      - {name: franchise_name, description: Curated franchise or series-name fallback, data_tests: [not_null]}
+      - {name: episode_number, description: Source episode number}
+      - {name: episode_title, description: Episode display title}
+      - {name: release_date, description: Parsed release date}
+      - {name: release_year, description: Calendar release year used by dashboard filters}
+      - {name: duration_minutes, description: Runtime in minutes}
+      - {name: source_url, description: Source detail-page URL}
+  - name: mart_episode_genres
+    description: One row per episode and genre, retaining release year for filtering.
+    columns:
+      - {name: episode_id, description: Episode identifier, data_tests: [not_null]}
+      - {name: release_year, description: Episode release year}
+      - {name: genre_id, description: Genre identifier, data_tests: [not_null]}
+      - {name: genre_name, description: Genre display name, data_tests: [not_null]}
+      - {name: episode_genre_key, description: Unique episode and genre grain, data_tests: [not_null, unique]}
+  - name: mart_speaker_credits
+    description: One row per episode, speaker and role credit, retaining release year.
+    columns:
+      - {name: episode_id, description: Episode identifier, data_tests: [not_null]}
+      - {name: release_year, description: Episode release year}
+      - {name: speaker_id, description: Speaker identifier, data_tests: [not_null]}
+      - {name: speaker_name, description: Speaker display name, data_tests: [not_null]}
+      - {name: role_id, description: Role identifier, data_tests: [not_null]}
+      - {name: role_name, description: Role display name, data_tests: [not_null]}
+      - {name: credit_key, description: Unique episode speaker and role grain, data_tests: [not_null, unique]}
+  - name: mart_episodes_per_year
+    description: Episode counts for each known release year.
+    columns:
+      - {name: year, description: Calendar release year, data_tests: [not_null, unique]}
+      - {name: episode_count, description: Episodes released in the year, data_tests: [not_null]}
+  - name: mart_genre_trends
+    description: Distinct episode counts by release year and genre.
+    columns:
+      - {name: year, description: Calendar release year, data_tests: [not_null]}
+      - {name: genre_name, description: Genre display name, data_tests: [not_null]}
+      - {name: episode_count, description: Distinct episodes in the year and genre, data_tests: [not_null]}
+      - {name: year_genre_key, description: Unique year and genre grain, data_tests: [not_null, unique]}
+  - name: mart_genre_totals
+    description: All-time distinct episode counts by genre.
+    columns:
+      - {name: genre_name, description: Genre display name, data_tests: [not_null, unique]}
+      - {name: episode_count, description: Distinct episodes assigned to the genre, data_tests: [not_null]}
+  - name: mart_labels
+    description: All-time series and episode counts by publisher label.
+    columns:
+      - {name: label_name, description: Publisher label, data_tests: [not_null, unique]}
+      - {name: series_count, description: Distinct series published by the label, data_tests: [not_null]}
+      - {name: episode_count, description: Episodes published by the label, data_tests: [not_null]}
+  - name: mart_speakers
+    description: All-time episode, role and credit counts by speaker.
+    columns:
+      - {name: speaker_id, description: Speaker identifier, data_tests: [not_null, unique]}
+      - {name: speaker_name, description: Speaker display name, data_tests: [not_null]}
+      - {name: episode_count, description: Distinct credited episodes, data_tests: [not_null]}
+      - {name: role_count, description: Distinct credited roles, data_tests: [not_null]}
+      - {name: credit_count, description: Episode speaker and role credit rows, data_tests: [not_null]}
+  - name: mart_duration_distribution
+    description: Episode counts in ordered duration buckets; unknown durations are excluded.
+    columns:
+      - {name: duration_bucket, description: Human-readable duration range, data_tests: [not_null, unique]}
+      - {name: bucket_order, description: Stable chart order, data_tests: [not_null, unique]}
+      - {name: episode_count, description: Episodes in the duration range, data_tests: [not_null]}
+  - name: mart_franchises
+    description: Series and episode counts for curated franchises and series fallbacks.
+    columns:
+      - {name: franchise_name, description: Curated franchise or series-name fallback, data_tests: [not_null, unique]}
+      - {name: series_count, description: Distinct component series, data_tests: [not_null]}
+      - {name: episode_count, description: Episodes assigned to the franchise, data_tests: [not_null]}
+  - name: mart_kpis
+    description: Single-row overview including missing-year and missing-duration counts.
+    columns:
+      - {name: episode_count, description: Total episode records, data_tests: [not_null]}
+      - {name: series_count, description: Distinct series represented, data_tests: [not_null]}
+      - {name: label_count, description: Distinct known publisher labels, data_tests: [not_null]}
+      - {name: franchise_count, description: Distinct curated and fallback franchises, data_tests: [not_null]}
+      - {name: episodes_without_year, description: Episodes excluded from year trends, data_tests: [not_null]}
+      - {name: episodes_without_duration, description: Episodes excluded from duration buckets, data_tests: [not_null]}

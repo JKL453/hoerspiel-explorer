@@ -1,0 +1,10 @@
+version: 2
+
+seeds:
+  - name: franchise_mappings
+    description: Reviewed mappings from normalized source series names to portfolio franchises.
+    columns:
+      - name: normalized_series_name
+        data_tests: [not_null, unique]
+      - name: franchise_name
+        data_tests: [not_null]

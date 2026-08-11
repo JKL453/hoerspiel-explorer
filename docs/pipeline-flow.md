@@ -48,10 +48,20 @@ flowchart TD
         database[(Supabase product tables)]
     end
 
-    subgraph downstream[Downstream processing]
+    subgraph analytics[Analytics showcase]
+        dbtFlow["Prefect: build-dbt-analytics"]
+        dbtDebug[dbt debug and seed]
+        dbtStaging[(analytics: staging views)]
+        dbtMarts[(analytics: fact and aggregate marts)]
+        dbtTests[dbt tests]
+        dbtDocs[(PVC: dbt_docs)]
+        analyticsRpc[public get_analytics RPCs]
+        statsPage[Next.js statistics dashboard]
+    end
+
+    subgraph downstream[Other downstream processing]
         embeddings["Future Prefect flow: generate embeddings"]
-        dbt[dbt staging and marts]
-        frontend[Next.js analytics and RAG]
+        frontend[Next.js RAG]
     end
 
     seed --> scrapeTargets
@@ -85,13 +95,15 @@ flowchart TD
 
     database -. descriptions without embeddings .-> embeddings
     embeddings -. vectors .-> database
-    database --> dbt --> frontend
+    database --> dbtFlow --> dbtDebug --> dbtStaging --> dbtMarts --> dbtTests --> dbtDocs
+    dbtMarts --> analyticsRpc --> statsPage
+    database --> frontend
 
     classDef prefect fill:#e8f1ff,stroke:#2563eb,stroke-width:2px,color:#111827;
     classDef manual fill:#fff1f2,stroke:#dc2626,stroke-width:2px,color:#111827;
     classDef future fill:#f3f4f6,stroke:#6b7280,stroke-dasharray:5 5,color:#374151;
 
-    class scrape,parseSeries,fetchEpisodes,repairFlow,build,load prefect;
+    class scrape,parseSeries,fetchEpisodes,repairFlow,build,load,dbtFlow prefect;
     class manualReset,sourceKey manual;
     class embeddings future;
 ```
@@ -103,7 +115,11 @@ flowchart TD
 3. Run `build-cleaned-details` and require successful artifact validation.
 4. Empty the seven product tables manually; keep target tables intact.
 5. Run `load-cleaned-details` and require matching post-load counts.
-6. Generate embeddings, then build dbt models and downstream views.
+6. Run `build-dbt-analytics` as a separate deployment and require all dbt tests
+   to pass.
+7. On the first analytics release only, install the public analytics RPCs after
+   the marts exist. Later dbt refreshes keep the RPC interface stable.
+8. Generate embeddings independently when required for RAG.
 
 The loader never truncates tables. If it fails partway through an initial full
 refresh, empty the product tables again before restarting it.

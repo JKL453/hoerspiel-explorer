@@ -1,0 +1,51 @@
+version: 2
+
+models:
+  - name: stg_series
+    description: Clean series dimension from the product schema.
+    columns:
+      - {name: series_id, description: Product series identifier, data_tests: [not_null, unique]}
+      - {name: series_name, description: Series display name, data_tests: [not_null, unique]}
+      - {name: label_name, description: Publisher label with empty and question-mark placeholders converted to null}
+      - {name: normalized_series_name, description: Lowercase whitespace-normalized key used by the franchise seed, data_tests: [not_null, unique]}
+  - name: stg_episodes
+    description: Typed and trimmed episode records.
+    columns:
+      - {name: episode_id, description: Product episode identifier, data_tests: [not_null, unique]}
+      - {name: series_id, description: Parent series identifier, data_tests: [not_null]}
+      - {name: source_key, description: Stable ingestion identifier, data_tests: [not_null, unique]}
+      - {name: episode_number, description: Episode number supplied by the source}
+      - {name: episode_title, description: Episode title with blank values converted to null}
+      - {name: description, description: Cleaned episode description}
+      - {name: duration_minutes, description: Runtime in minutes}
+      - {name: release_date, description: Parsed release date}
+      - {name: release_year, description: Calendar year extracted from the release date}
+      - {name: cover_url, description: Cover image URL}
+      - {name: order_number, description: Publisher catalogue number}
+      - {name: source_url, description: Source detail-page URL; null for no-link stubs}
+  - name: stg_speakers
+    description: Clean speaker dimension.
+    columns:
+      - {name: speaker_id, description: Product speaker identifier, data_tests: [not_null, unique]}
+      - {name: speaker_name, description: Normalized speaker display name, data_tests: [not_null, unique]}
+  - name: stg_roles
+    description: Clean role dimension.
+    columns:
+      - {name: role_id, description: Product role identifier, data_tests: [not_null, unique]}
+      - {name: role_name, description: Normalized role display name, data_tests: [not_null, unique]}
+  - name: stg_genres
+    description: Clean genre dimension.
+    columns:
+      - {name: genre_id, description: Product genre identifier, data_tests: [not_null, unique]}
+      - {name: genre_name, description: Normalized genre display name, data_tests: [not_null, unique]}
+  - name: stg_episode_speakers
+    description: Episode, speaker and role relationships.
+    columns:
+      - {name: episode_id, description: Episode identifier, data_tests: [not_null]}
+      - {name: speaker_id, description: Speaker identifier, data_tests: [not_null]}
+      - {name: role_id, description: Role identifier, data_tests: [not_null]}
+  - name: stg_episode_genres
+    description: Episode and genre relationships.
+    columns:
+      - {name: episode_id, description: Episode identifier, data_tests: [not_null]}
+      - {name: genre_id, description: Genre identifier, data_tests: [not_null]}

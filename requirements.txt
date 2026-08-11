@@ -22,5 +22,3 @@ supabase>=2.0
 python-dotenv>=1.0
 openai>=1.0
 google-genai>=0.5
-dbt-core==1.8.0
-dbt-postgres==1.8.0

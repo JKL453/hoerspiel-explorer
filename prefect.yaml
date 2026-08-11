@@ -54,6 +54,22 @@ deployments:
 
   - name: build-dbt-analytics
     entrypoint: src/hoerspiel_discovery/flows/build_dbt_analytics.py:build_dbt_analytics
+    pull:
+      - prefect.deployments.steps.git_clone:
+          id: clone_step
+          repository: https://github.com/JKL453/hoerspiel-explorer.git
+          branch: main
+      - prefect.deployments.steps.pip_install_requirements:
+          directory: "{{ clone_step.directory }}"
+          requirements_file: requirements-dbt.txt
+      - prefect.deployments.steps.run_shell_script:
+          script: pip install --no-deps dbt-postgres==1.8.0
+          directory: "{{ clone_step.directory }}"
+      - prefect.deployments.steps.run_shell_script:
+          script: pip install -e .
+          directory: "{{ clone_step.directory }}"
+      - prefect.deployments.steps.set_working_directory:
+          directory: "{{ clone_step.directory }}"
     work_pool:
       name: data-platform
       job_variables:

@@ -105,3 +105,9 @@ A key design goal of this project is to minimize running costs while using produ
 The only significant cost was the one-time embedding generation (~$0.02 for 12,900 episodes).
 This approach demonstrates that production-ready AI applications can be built and operated
 at near-zero cost by combining free tiers strategically.
+
+## Roadmap
+
+Planned discovery and data-quality work, including speaker search and the
+separation of canonical episodes from publication variants, is tracked in
+[docs/product-backlog.md](docs/product-backlog.md).

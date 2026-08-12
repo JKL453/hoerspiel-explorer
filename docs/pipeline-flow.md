@@ -57,6 +57,9 @@ flowchart TD
         dbtDocs[(PVC: dbt_docs)]
         analyticsRpc[public get_analytics RPCs]
         statsPage[Next.js statistics dashboard]
+        variantModels[(analytics: episode variant candidates)]
+        variantExport["Prefect: export-episode-variant-review"]
+        reviewCsv[(PVC: timestamped review CSV)]
     end
 
     subgraph downstream[Other downstream processing]
@@ -97,13 +100,14 @@ flowchart TD
     embeddings -. vectors .-> database
     database --> dbtFlow --> dbtDebug --> dbtStaging --> dbtMarts --> dbtTests --> dbtDocs
     dbtMarts --> analyticsRpc --> statsPage
+    dbtMarts --> variantModels --> variantExport --> reviewCsv
     database --> frontend
 
     classDef prefect fill:#e8f1ff,stroke:#2563eb,stroke-width:2px,color:#111827;
     classDef manual fill:#fff1f2,stroke:#dc2626,stroke-width:2px,color:#111827;
     classDef future fill:#f3f4f6,stroke:#6b7280,stroke-dasharray:5 5,color:#374151;
 
-    class scrape,parseSeries,fetchEpisodes,repairFlow,build,load,dbtFlow prefect;
+    class scrape,parseSeries,fetchEpisodes,repairFlow,build,load,dbtFlow,variantExport prefect;
     class manualReset,sourceKey manual;
     class embeddings future;
 ```

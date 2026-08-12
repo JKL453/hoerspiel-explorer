@@ -18,9 +18,11 @@ select
     coalesce(franchises.franchise_name, series.series_name) as franchise_name,
     episodes.episode_number,
     episodes.episode_title,
+    episodes.description,
     episodes.release_date,
     episodes.release_year,
     episodes.duration_minutes,
+    episodes.order_number,
     episodes.source_url
 from episodes
 left join series using (series_id)

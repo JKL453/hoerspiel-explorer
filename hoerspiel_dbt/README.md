@@ -11,9 +11,11 @@ flowchart LR
     staging --> facts[episode, genre and speaker facts]
     seed[franchise_mappings seed] --> facts
     facts --> marts[aggregate marts]
+    facts --> profiling[episode variant profiling]
     facts --> rpc[public analytics RPCs]
     marts --> tests[dbt data tests and docs]
     rpc --> dashboard[Next.js statistics dashboard]
+    profiling --> review[Prefect review CSV]
 ```
 
 Staging models standardize names and types without changing source data. The
@@ -42,3 +44,11 @@ every dbt step and publishes complete documentation artifacts to
 recognizable franchises in the current dataset. Matching uses normalized,
 case-folded series names. Every series without a mapping remains visible as its
 own franchise, so the seed never drops or guesses away records.
+
+## Episode variant pilot
+
+Models in `models/profiling` classify the `Die Drei ???` main-series catalog
+and produce review-only relationship candidates for reissues, boxes,
+compilations and other productions. They are read-only and tagged
+`episode_variant_pilot`. Operational and review instructions are documented in
+[`docs/episode-variant-review.md`](../docs/episode-variant-review.md).

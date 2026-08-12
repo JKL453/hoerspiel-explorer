@@ -1,0 +1,31 @@
+with ranked as (
+    select
+        features.*,
+        row_number() over (
+            partition by episode_number
+            order by
+                case when release_date is null then 1 else 0 end,
+                release_date,
+                case when cast_count > 0 then 0 else 1 end,
+                episode_id
+        ) as reference_rank
+    from {{ ref('int_episode_variant_features') }} features
+    where base_category = 'regular_candidate'
+      and episode_number > 0
+      and comparison_title <> ''
+)
+
+select
+    episode_id,
+    source_key,
+    episode_number,
+    episode_title,
+    description,
+    comparison_title,
+    release_date,
+    duration_minutes,
+    order_number,
+    cast_count,
+    cast_fingerprint
+from ranked
+where reference_rank = 1

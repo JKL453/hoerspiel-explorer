@@ -28,6 +28,11 @@ fan box or compilation. These rows must not simply be deleted: they are valid
 publications, but counting every publication as a distinct episode distorts
 discovery and analytics.
 
+The first read-only profiling pilot is implemented for the `Die Drei ???`
+main series. It exports classifications and relationship proposals for manual
+review; it does not yet create canonical IDs. See
+[`episode-variant-review.md`](episode-variant-review.md).
+
 ### Target model
 
 Separate the conceptual work from its physical or commercial releases:

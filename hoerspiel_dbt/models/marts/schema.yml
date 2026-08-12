@@ -12,9 +12,11 @@ models:
       - {name: franchise_name, description: Curated franchise or series-name fallback, data_tests: [not_null]}
       - {name: episode_number, description: Source episode number}
       - {name: episode_title, description: Episode display title}
+      - {name: description, description: Cleaned episode description}
       - {name: release_date, description: Parsed release date}
       - {name: release_year, description: Calendar release year used by dashboard filters}
       - {name: duration_minutes, description: Runtime in minutes}
+      - {name: order_number, description: Publisher catalogue number}
       - {name: source_url, description: Source detail-page URL}
   - name: mart_episode_genres
     description: One row per episode and genre, retaining release year for filtering.

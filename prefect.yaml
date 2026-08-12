@@ -75,3 +75,24 @@ deployments:
       job_variables:
         env:
           HOERSPIEL_DATA_DIR: /data/hoerspiel-explorer
+
+  - name: export-episode-variant-review
+    entrypoint: src/hoerspiel_discovery/flows/export_episode_variant_review.py:export_episode_variant_review
+    pull:
+      - prefect.deployments.steps.git_clone:
+          id: clone_step
+          repository: https://github.com/JKL453/hoerspiel-explorer.git
+          branch: main
+      - prefect.deployments.steps.pip_install_requirements:
+          directory: "{{ clone_step.directory }}"
+          requirements_file: requirements-review.txt
+      - prefect.deployments.steps.run_shell_script:
+          script: pip install -e .
+          directory: "{{ clone_step.directory }}"
+      - prefect.deployments.steps.set_working_directory:
+          directory: "{{ clone_step.directory }}"
+    work_pool:
+      name: data-platform
+      job_variables:
+        env:
+          HOERSPIEL_DATA_DIR: /data/hoerspiel-explorer

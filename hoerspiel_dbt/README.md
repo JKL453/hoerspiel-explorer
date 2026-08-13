@@ -59,8 +59,11 @@ precedence without changing product tables.
 
 `mart_series_episode_catalog` translates the technical categories and markers
 into stable user-facing groups. `mart_series_category_counts` supplies the
-search overview and category navigation. The models are read-only and tagged
-`episode_catalog`.
+search overview and category navigation. Series that contain distinguishable
+production lines can expose another navigation level; the first curated case
+separates John Sinclair `Edition 2000` from `Tonstudio Braun`. Multipart title
+suffixes such as `(Teil 1/2)` remain regular episodes and are not interpreted
+as compilations. The models are read-only and tagged `episode_catalog`.
 
 The relationship-review export remains deliberately limited to the `Die Drei
 ???` pilot. Operational and review instructions are documented in

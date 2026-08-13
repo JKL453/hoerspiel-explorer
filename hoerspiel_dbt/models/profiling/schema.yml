@@ -15,6 +15,8 @@ models:
       - {name: range_start, description: First explicit contained episode number}
       - {name: range_end, description: Last explicit contained episode number}
       - {name: edition_markers, description: Comma-separated machine-readable publication markers}
+      - {name: production_line_key, description: Stable production-line key within the source series, data_tests: [not_null]}
+      - {name: production_line_label, description: User-facing production-line name, data_tests: [not_null]}
       - {name: comparison_title, description: Conservative normalized title used only for exact matching}
       - {name: cast_fingerprint, description: Stable hash of sorted speaker and role IDs when credits are available}
   - name: int_regular_episode_references
@@ -22,6 +24,7 @@ models:
     columns:
       - {name: series_episode_number_key, description: Unique series and episode-number grain, data_tests: [not_null, unique]}
       - {name: series_id, description: Source series identifier, data_tests: [not_null]}
+      - {name: production_line_key, description: Production line used to scope episode-number references, data_tests: [not_null]}
       - {name: episode_id, description: Reference episode identifier, data_tests: [not_null, unique]}
       - {name: episode_number, description: Episode number within the source series, data_tests: [not_null]}
       - {name: comparison_title, description: Normalized reference title, data_tests: [not_null]}
@@ -30,6 +33,7 @@ models:
     columns:
       - {name: episode_id, description: Source episode identifier, data_tests: [not_null, unique]}
       - {name: source_key, description: Stable source identifier, data_tests: [not_null, unique]}
+      - {name: production_line_key, description: Effective production line within the source series, data_tests: [not_null]}
       - name: variant_category
         description: Effective category in analytics; no production data is changed by this value.
         data_tests:

@@ -2,7 +2,7 @@ with ranked as (
     select
         features.*,
         row_number() over (
-            partition by series_id, episode_number
+            partition by series_id, production_line_key, episode_number
             order by
                 case when release_date is null then 1 else 0 end,
                 release_date,
@@ -16,9 +16,13 @@ with ranked as (
 )
 
 select
-    concat(series_id, ':', episode_number) as series_episode_number_key,
+    concat(series_id, ':', production_line_key, ':', episode_number)
+        as series_episode_number_key,
     series_id,
     series_name,
+    production_line_key,
+    production_line_label,
+    production_line_order,
     episode_id,
     source_key,
     episode_number,

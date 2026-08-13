@@ -25,6 +25,9 @@ The relationship meanings are:
 Confidence is for review ordering only. No confidence class changes product
 data automatically.
 
+The curated dialect marker for `Die Drei ???` applies only to the eight Tudor
+releases numbered 1 through 8. Leading ellipses alone are not a dialect signal.
+
 ## Generate a review file
 
 1. Commit and deploy the dbt changes.

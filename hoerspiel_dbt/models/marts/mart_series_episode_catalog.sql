@@ -8,6 +8,9 @@ enriched as (
     select
         facts.*,
         classifications.variant_category,
+        classifications.production_line_key,
+        classifications.production_line_label,
+        classifications.production_line_order,
         classifications.machine_category,
         classifications.classification_source,
         classifications.edition_markers,

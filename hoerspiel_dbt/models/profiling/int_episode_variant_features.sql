@@ -39,8 +39,30 @@ extracted as (
         lower_title ~ '(radio show|soundtrack|originalmusik|alexa-skill|welt der hörspiele)'
             as is_other_production,
         series_name = 'Die Drei ???'
-            and lower_title ~ '^\s*(…|\.{3})' as is_dialect,
-        lower_title ~ '/' as has_title_separator
+            and label_name = 'Tudor'
+            and episode_number between 1 and 8 as is_dialect,
+        lower_title ~ '/'
+            and lower_title !~ '(teil\s*)?[0-9]+\s*/\s*[0-9]+'
+            as has_title_separator,
+        case
+            when series_name = 'John Sinclair'
+             and lower(coalesce(label_name, '')) ~ '(tonstudio braun|^tsb)'
+                then 'tonstudio_braun'
+            when series_name = 'John Sinclair' then 'edition_2000'
+            else 'main'
+        end as production_line_key,
+        case
+            when series_name = 'John Sinclair'
+             and lower(coalesce(label_name, '')) ~ '(tonstudio braun|^tsb)'
+                then 'Tonstudio Braun'
+            when series_name = 'John Sinclair' then 'Edition 2000'
+            else 'Hauptserie'
+        end as production_line_label,
+        case
+            when series_name = 'John Sinclair'
+             and lower(coalesce(label_name, '')) ~ '(tonstudio braun|^tsb)' then 20
+            else 10
+        end as production_line_order
     from catalog
 ),
 normalized as (
@@ -100,6 +122,9 @@ select
     series_id,
     series_name,
     franchise_name,
+    production_line_key,
+    production_line_label,
+    production_line_order,
     episode_id,
     source_key,
     episode_number,

@@ -14,6 +14,7 @@ range_matches as (
     from classifications source
     join reference_episodes target
       on target.series_id = source.series_id
+     and target.production_line_key = source.production_line_key
      and target.episode_number between source.range_start and source.range_end
     where source.variant_category in ('box_set', 'compilation')
       and source.range_start is not null
@@ -52,6 +53,7 @@ format_number_matches as (
     from classifications source
     join reference_episodes target
       on target.series_id = source.series_id
+     and target.production_line_key = source.production_line_key
      and target.episode_number = source.episode_number
     where source.variant_category = 'format_reissue'
 ),
@@ -78,6 +80,7 @@ story_title_matches as (
     from classifications source
     join reference_episodes target
       on target.series_id = source.series_id
+     and target.production_line_key = source.production_line_key
      and source.comparison_title = target.comparison_title
      and source.episode_id <> target.episode_id
     where source.variant_category in (
@@ -115,6 +118,7 @@ compilation_title_matches as (
     join classifications source on source.episode_id = parts.source_episode_id
     join reference_episodes target
       on target.series_id = source.series_id
+     and target.production_line_key = source.production_line_key
      and parts.component_title = target.comparison_title
     where parts.component_title <> ''
 ),

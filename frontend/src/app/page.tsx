@@ -8,6 +8,9 @@ interface CategorySummary {
   category_key: string
   category_label: string
   category_order: number
+  production_line_key: string
+  production_line_label: string
+  production_line_order: number
   episode_count: number
 }
 
@@ -43,6 +46,9 @@ function normalizeCategoryCounts(value: unknown): CategorySummary[] {
       category_key: category.category_key,
       category_label: category.category_label,
       category_order: Number(category.category_order),
+      production_line_key: String(category.production_line_key),
+      production_line_label: String(category.production_line_label),
+      production_line_order: Number(category.production_line_order),
       episode_count: Number(category.episode_count),
     }]
   })
@@ -136,8 +142,27 @@ export default function HomePage() {
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((item) => {
-              const regular = item.category_counts.find((category) => category.category_key === 'regular')
-              const variants = item.category_counts.filter((category) => category.category_key !== 'regular')
+              const productionCounts = new Map<string, { label: string; count: number; order: number }>()
+              const categoryCounts = new Map<string, { label: string; count: number; order: number }>()
+              for (const category of item.category_counts) {
+                const production = productionCounts.get(category.production_line_key)
+                productionCounts.set(category.production_line_key, {
+                  label: category.production_line_label,
+                  count: (production?.count ?? 0) + category.episode_count,
+                  order: category.production_line_order,
+                })
+                const summary = categoryCounts.get(category.category_key)
+                categoryCounts.set(category.category_key, {
+                  label: category.category_label,
+                  count: (summary?.count ?? 0) + category.episode_count,
+                  order: category.category_order,
+                })
+              }
+              const productions = [...productionCounts.values()].sort((a, b) => a.order - b.order)
+              const categories = [...categoryCounts.entries()]
+                .sort(([, a], [, b]) => a.order - b.order)
+              const regular = categoryCounts.get('regular')
+              const variants = categories.filter(([key]) => key !== 'regular')
 
               return (
                 <Link href={`/series/${item.id}`} key={item.id}>
@@ -149,12 +174,18 @@ export default function HomePage() {
                     <p className="text-sm font-medium mt-3 text-blue-600">
                       {item.episode_count} Veröffentlichungen
                     </p>
-                    {(regular || variants.length > 0) && (
+                    {productions.length > 1 ? (
+                      <p className="mt-2 text-xs leading-5 text-gray-500">
+                        {productions.map((production) =>
+                          `${production.label}: ${production.count}`
+                        ).join(' · ')}
+                      </p>
+                    ) : (regular || variants.length > 0) && (
                       <p className="mt-2 text-xs leading-5 text-gray-500">
                         {[
-                          regular && `${regular.episode_count} regulär`,
-                          ...variants.slice(0, 2).map((category) =>
-                            `${category.episode_count} ${category.category_label.toLowerCase()}`
+                          regular && `${regular.count} regulär`,
+                          ...variants.slice(0, 2).map(([, category]) =>
+                            `${category.count} ${category.label.toLowerCase()}`
                           ),
                         ].filter(Boolean).join(' · ')}
                       </p>

@@ -95,6 +95,8 @@ models:
       - {name: episode_id, description: Product episode identifier, data_tests: [not_null, unique]}
       - {name: source_key, description: Stable ingestion identifier, data_tests: [not_null, unique]}
       - {name: series_id, description: Parent source series, data_tests: [not_null]}
+      - {name: production_line_key, description: Stable production line within the source series, data_tests: [not_null]}
+      - {name: production_line_label, description: User-facing production-line label, data_tests: [not_null]}
       - {name: variant_category, description: Effective technical publication category, data_tests: [not_null]}
       - name: category_key
         description: Stable user-facing catalog group key.
@@ -109,6 +111,8 @@ models:
     columns:
       - {name: series_id, description: Parent source series, data_tests: [not_null]}
       - {name: series_category_key, description: Unique series and category grain, data_tests: [not_null, unique]}
+      - {name: production_line_key, description: Stable production line within the source series, data_tests: [not_null]}
+      - {name: production_line_label, description: User-facing production-line label, data_tests: [not_null]}
       - {name: category_key, description: Stable user-facing category key, data_tests: [not_null]}
       - {name: category_label, description: German category label, data_tests: [not_null]}
       - {name: category_order, description: Stable category order, data_tests: [not_null]}

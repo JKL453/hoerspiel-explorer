@@ -195,3 +195,6 @@ GRANT EXECUTE ON FUNCTION public.get_series_episode_categories(bigint) TO anon, 
 GRANT EXECUTE ON FUNCTION public.get_series_episode_catalog(bigint, text) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.get_series_catalog_facets(bigint) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.get_series_episode_catalog(bigint, text, text) TO anon, authenticated;
+
+-- Ensure PostgREST discovers new functions and overloads immediately.
+NOTIFY pgrst, 'reload schema';

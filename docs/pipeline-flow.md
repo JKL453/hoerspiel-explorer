@@ -60,6 +60,10 @@ flowchart TD
         variantModels[(analytics: episode variant candidates)]
         variantExport["Prefect: export-episode-variant-review"]
         reviewCsv[(PVC: timestamped review CSV)]
+        reviewSeed[(dbt seed: reviewed overrides)]
+        catalogMarts[(analytics: categorized series catalog)]
+        catalogRpc[public catalog RPCs]
+        seriesCatalog[Next.js series search and category tabs]
     end
 
     subgraph downstream[Other downstream processing]
@@ -101,6 +105,8 @@ flowchart TD
     database --> dbtFlow --> dbtDebug --> dbtStaging --> dbtMarts --> dbtTests --> dbtDocs
     dbtMarts --> analyticsRpc --> statsPage
     dbtMarts --> variantModels --> variantExport --> reviewCsv
+    reviewCsv -. curated import .-> reviewSeed --> variantModels
+    variantModels --> catalogMarts --> catalogRpc --> seriesCatalog
     database --> frontend
 
     classDef prefect fill:#e8f1ff,stroke:#2563eb,stroke-width:2px,color:#111827;
@@ -122,7 +128,9 @@ flowchart TD
 6. Run `build-dbt-analytics` as a separate deployment and require all dbt tests
    to pass.
 7. On the first analytics release only, install the public analytics RPCs after
-   the marts exist. Later dbt refreshes keep the RPC interface stable.
+   the marts exist. Install `07_episode_catalog_functions.sql` after the first
+   categorized catalog build. Later dbt refreshes keep both RPC interfaces
+   stable.
 8. Generate embeddings independently when required for RAG.
 
 The loader never truncates tables. If it fails partway through an initial full

@@ -13,7 +13,8 @@ range_matches as (
         '["explicit_episode_range"]'::jsonb as match_reasons
     from classifications source
     join reference_episodes target
-      on target.episode_number between source.range_start and source.range_end
+      on target.series_id = source.series_id
+     and target.episode_number between source.range_start and source.range_end
     where source.variant_category in ('box_set', 'compilation')
       and source.range_start is not null
       and source.range_end is not null
@@ -49,7 +50,9 @@ format_number_matches as (
                 then '["duration_within_five_minutes"]'::jsonb else '[]'::jsonb end
             as match_reasons
     from classifications source
-    join reference_episodes target using (episode_number)
+    join reference_episodes target
+      on target.series_id = source.series_id
+     and target.episode_number = source.episode_number
     where source.variant_category = 'format_reissue'
 ),
 story_title_matches as (
@@ -74,7 +77,8 @@ story_title_matches as (
             as match_reasons
     from classifications source
     join reference_episodes target
-      on source.comparison_title = target.comparison_title
+      on target.series_id = source.series_id
+     and source.comparison_title = target.comparison_title
      and source.episode_id <> target.episode_id
     where source.variant_category in (
         'live_production', 'film_adaptation', 'other_production', 'special'
@@ -108,7 +112,10 @@ compilation_title_matches as (
         90::integer as confidence_score,
         '["exact_normalized_component_title"]'::jsonb as match_reasons
     from split_compilation_titles parts
-    join reference_episodes target on parts.component_title = target.comparison_title
+    join classifications source on source.episode_id = parts.source_episode_id
+    join reference_episodes target
+      on target.series_id = source.series_id
+     and parts.component_title = target.comparison_title
     where parts.component_title <> ''
 ),
 all_matches as (

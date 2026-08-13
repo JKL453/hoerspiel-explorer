@@ -2,7 +2,7 @@ version: 2
 
 models:
   - name: int_episode_variant_features
-    description: Read-only features and publication markers for every Die Drei ??? pilot record.
+    description: Read-only features and publication markers for every publication in the catalog.
     columns:
       - {name: episode_id, description: Source episode identifier, data_tests: [not_null, unique]}
       - {name: source_key, description: Stable source identifier, data_tests: [not_null, unique]}
@@ -18,24 +18,32 @@ models:
       - {name: comparison_title, description: Conservative normalized title used only for exact matching}
       - {name: cast_fingerprint, description: Stable hash of sorted speaker and role IDs when credits are available}
   - name: int_regular_episode_references
-    description: Deterministic reference release for each regular main-series episode number.
+    description: Deterministic reference release for each regular episode number within a source series.
     columns:
+      - {name: series_episode_number_key, description: Unique series and episode-number grain, data_tests: [not_null, unique]}
+      - {name: series_id, description: Source series identifier, data_tests: [not_null]}
       - {name: episode_id, description: Reference episode identifier, data_tests: [not_null, unique]}
-      - {name: episode_number, description: Main-series episode number, data_tests: [not_null, unique]}
+      - {name: episode_number, description: Episode number within the source series, data_tests: [not_null]}
       - {name: comparison_title, description: Normalized reference title, data_tests: [not_null]}
   - name: episode_variant_classifications
-    description: Exactly one provisional publication category for each pilot record.
+    description: Exactly one publication category for each catalog record, with accepted review overrides taking precedence.
     columns:
       - {name: episode_id, description: Source episode identifier, data_tests: [not_null, unique]}
       - {name: source_key, description: Stable source identifier, data_tests: [not_null, unique]}
       - name: variant_category
-        description: Provisional category; no production data is changed by this value.
+        description: Effective category in analytics; no production data is changed by this value.
         data_tests:
           - not_null
           - accepted_values:
               values: [regular_episode, format_reissue, box_set, compilation, live_production, film_adaptation, special, other_production, unknown]
+      - name: classification_source
+        description: Whether the effective category came from deterministic rules or an accepted review override.
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [machine, reviewed]
   - name: episode_variant_candidates
-    description: Review-only links from publication variants to regular episode references.
+    description: Review-only links from publication variants to regular references within the same source series.
     columns:
       - {name: candidate_id, description: Stable hash of source target and relationship, data_tests: [not_null, unique]}
       - name: source_episode_id

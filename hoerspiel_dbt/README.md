@@ -11,11 +11,15 @@ flowchart LR
     staging --> facts[episode, genre and speaker facts]
     seed[franchise_mappings seed] --> facts
     facts --> marts[aggregate marts]
-    facts --> profiling[episode variant profiling]
+    reviewSeed[episode_variant_reviews seed] --> profiling
+    facts --> profiling[global publication classification]
+    profiling --> catalog[series catalog marts]
     facts --> rpc[public analytics RPCs]
     marts --> tests[dbt data tests and docs]
     rpc --> dashboard[Next.js statistics dashboard]
-    profiling --> review[Prefect review CSV]
+    profiling --> review[Prefect Die Drei ??? relationship review]
+    catalog --> catalogRpc[public catalog RPCs]
+    catalogRpc --> seriesPages[Next.js series search and category tabs]
 ```
 
 Staging models standardize names and types without changing source data. The
@@ -45,10 +49,19 @@ recognizable franchises in the current dataset. Matching uses normalized,
 case-folded series names. Every series without a mapping remains visible as its
 own franchise, so the seed never drops or guesses away records.
 
-## Episode variant pilot
+## Categorized publication catalog
 
-Models in `models/profiling` classify the `Die Drei ???` main-series catalog
-and produce review-only relationship candidates for reissues, boxes,
-compilations and other productions. They are read-only and tagged
-`episode_variant_pilot`. Operational and review instructions are documented in
+Models in `models/profiling` classify every source publication with global,
+deterministic rules. References and relationship proposals are always scoped
+to `series_id`, so identical episode numbers in different series can never be
+linked. Accepted human overrides from `episode_variant_reviews.csv` take
+precedence without changing product tables.
+
+`mart_series_episode_catalog` translates the technical categories and markers
+into stable user-facing groups. `mart_series_category_counts` supplies the
+search overview and category navigation. The models are read-only and tagged
+`episode_catalog`.
+
+The relationship-review export remains deliberately limited to the `Die Drei
+???` pilot. Operational and review instructions are documented in
 [`docs/episode-variant-review.md`](../docs/episode-variant-review.md).

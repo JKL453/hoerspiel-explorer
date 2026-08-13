@@ -71,33 +71,36 @@ def _fetch_candidates(connection) -> list[dict[str, Any]]:
         cursor.execute(
             """
             SELECT
-                candidate_id,
-                source_episode_id,
-                source_key,
-                source_title,
-                variant_category,
-                target_episode_id,
-                target_source_key,
-                target_title,
-                target_episode_number,
-                proposed_relationship,
-                confidence_score,
-                confidence_class,
-                match_reasons,
-                edition_markers,
-                range_start,
-                range_end
-            FROM analytics.episode_variant_candidates
+                candidates.candidate_id,
+                candidates.source_episode_id,
+                candidates.source_key,
+                candidates.source_title,
+                candidates.variant_category,
+                candidates.target_episode_id,
+                candidates.target_source_key,
+                candidates.target_title,
+                candidates.target_episode_number,
+                candidates.proposed_relationship,
+                candidates.confidence_score,
+                candidates.confidence_class,
+                candidates.match_reasons,
+                candidates.edition_markers,
+                candidates.range_start,
+                candidates.range_end
+            FROM analytics.episode_variant_candidates candidates
+            JOIN analytics.episode_variant_classifications classifications
+              ON classifications.episode_id = candidates.source_episode_id
+            WHERE classifications.series_name = 'Die Drei ???'
             ORDER BY
-                CASE confidence_class
+                CASE candidates.confidence_class
                     WHEN 'high' THEN 1
                     WHEN 'medium' THEN 2
                     ELSE 3
                 END,
-                variant_category,
-                source_episode_id,
-                target_episode_number NULLS LAST,
-                candidate_id
+                candidates.variant_category,
+                candidates.source_episode_id,
+                candidates.target_episode_number NULLS LAST,
+                candidates.candidate_id
             """
         )
         columns = tuple(item.name for item in cursor.description)

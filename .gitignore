@@ -48,3 +48,5 @@ logs/
 # IDE
 .vscode/
 .idea/
+
+/episode-variant-review/*

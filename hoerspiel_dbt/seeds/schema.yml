@@ -8,3 +8,17 @@ seeds:
         data_tests: [not_null, unique]
       - name: franchise_name
         data_tests: [not_null]
+  - name: episode_variant_reviews
+    description: Versioned review decisions and optional human overrides from the Die Drei ??? pilot.
+    columns:
+      - {name: candidate_id, description: Stable reviewed candidate identifier, data_tests: [not_null, unique]}
+      - {name: source_key, description: Stable source publication identifier, data_tests: [not_null]}
+      - name: review_decision
+        description: Human decision for the generated relationship proposal.
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [accept, reject, uncertain]
+      - {name: reviewed_category, description: Optional human override for the publication category}
+      - {name: reviewed_markers, description: Optional comma-separated human marker override}
+      - {name: review_note, description: Optional explanation supplied during review}

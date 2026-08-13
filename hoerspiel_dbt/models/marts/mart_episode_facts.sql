@@ -22,6 +22,7 @@ select
     episodes.release_date,
     episodes.release_year,
     episodes.duration_minutes,
+    episodes.cover_url,
     episodes.order_number,
     episodes.source_url
 from episodes

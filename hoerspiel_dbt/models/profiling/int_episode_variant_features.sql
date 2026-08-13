@@ -1,4 +1,4 @@
-with pilot as (
+with catalog as (
     select
         facts.*,
         lower(facts.episode_title) as lower_title,
@@ -16,7 +16,6 @@ with pilot as (
         from {{ ref('mart_speaker_credits') }}
         group by episode_id
     ) cast_counts using (episode_id)
-    where facts.series_name = 'Die Drei ???'
 ),
 extracted as (
     select
@@ -26,18 +25,23 @@ extracted as (
             'folgen?\s*0*([0-9]+)\s*(?:-|–|bis|und)\s*0*([0-9]+)'
         ) as episode_range_match,
         lower_title ~ '(fanbox|einsteigerbox)' as is_fanbox,
-        lower_title ~ '(steelbook|sammelbox)' as is_container,
-        lower_title ~ '(doppelfolge|sammelfolge)' as is_compilation,
-        lower_title ~ '(lp[ -]?edition|vinyl|neuauflage|reissue)' as is_format_reissue,
+        lower_title ~ '(steelbook|sammelbox|hörspielbox|hörspiel-box|jubiläumsbox|komplettbox|sammleredition|in einer box|collector.?s box)'
+            as is_container,
+        lower_title ~ '(doppelfolge|sammelfolge|gesamtausgabe)' as is_compilation,
+        lower_title ~ '(lp[ -]?edition|vinyl|neuauflage|reissue|remastered)' as is_format_reissue,
         lower_title ~ '(^|[^a-zäöüß])(live|live-dvd|live &|live and)([^a-zäöüß]|$)'
             or lower_title ~ 'usb-stick' as is_live,
-        lower_title ~ '(hörspiel zum film|original-hörspiel zum kinofilm|kinofilm)'
+        lower_title ~ '(hörspiel zum film|original-hörspiel zum kinofilm|kinofilm|filmfassung)'
             as is_film,
-        lower_title ~ '(adventskalender|special|top secret edition)' as is_special,
-        lower_title ~ '(lesung|liest:?|radio show|soundtrack|originalmusik|alexa-skill|welt der hörspiele)'
+        lower_title ~ '(adventskalender|special|top secret edition|sonderfolge)'
+            as is_special,
+        lower_title ~ '(hörbuch|audiobook|lesung|liest:?)' as is_audiobook,
+        lower_title ~ '(radio show|soundtrack|originalmusik|alexa-skill|welt der hörspiele)'
             as is_other_production,
+        series_name = 'Die Drei ???'
+            and lower_title ~ '^\s*(…|\.{3})' as is_dialect,
         lower_title ~ '/' as has_title_separator
-    from pilot
+    from catalog
 ),
 normalized as (
     select
@@ -48,8 +52,8 @@ normalized as (
             when is_format_reissue then 'format_reissue'
             when is_live then 'live_production'
             when is_film then 'film_adaptation'
-            when is_special then 'special'
-            when is_other_production then 'other_production'
+            when is_dialect or is_special then 'special'
+            when is_audiobook or is_other_production then 'other_production'
             when episode_number between 1 and 999 then 'regular_candidate'
             else 'unknown'
         end as base_category,
@@ -63,7 +67,9 @@ normalized as (
             case when is_format_reissue then 'format_reissue' end,
             case when is_live then 'live' end,
             case when is_film then 'film' end,
-            case when is_special then 'special' end,
+            case when is_special or is_dialect then 'special' end,
+            case when is_audiobook then 'audiobook' end,
+            case when is_dialect then 'dialect' end,
             case when is_other_production then 'other_production' end,
             case when has_title_separator then 'multi_title' end
         ) as edition_markers,
@@ -80,9 +86,8 @@ normalized as (
                     ' ',
                     'g'
                 ),
-                '\s*[-–]\s*(live|lp[ -]?edition|special).*$',
-                ' ',
-                'g'
+                '\s*[-–]\s*(live|lp[ -]?edition|special).*$'
+                , ' ', 'g'
             ),
             '^\s*(und\s+)?',
             '',
@@ -92,6 +97,9 @@ normalized as (
 )
 
 select
+    series_id,
+    series_name,
+    franchise_name,
     episode_id,
     source_key,
     episode_number,

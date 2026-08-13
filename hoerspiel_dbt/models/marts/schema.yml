@@ -16,6 +16,7 @@ models:
       - {name: release_date, description: Parsed release date}
       - {name: release_year, description: Calendar release year used by dashboard filters}
       - {name: duration_minutes, description: Runtime in minutes}
+      - {name: cover_url, description: Source cover image URL}
       - {name: order_number, description: Publisher catalogue number}
       - {name: source_url, description: Source detail-page URL}
   - name: mart_episode_genres
@@ -88,3 +89,27 @@ models:
       - {name: franchise_count, description: Distinct curated and fallback franchises, data_tests: [not_null]}
       - {name: episodes_without_year, description: Episodes excluded from year trends, data_tests: [not_null]}
       - {name: episodes_without_duration, description: Episodes excluded from duration buckets, data_tests: [not_null]}
+  - name: mart_series_episode_catalog
+    description: One categorized publication per episode for the series and franchise catalog UI.
+    columns:
+      - {name: episode_id, description: Product episode identifier, data_tests: [not_null, unique]}
+      - {name: source_key, description: Stable ingestion identifier, data_tests: [not_null, unique]}
+      - {name: series_id, description: Parent source series, data_tests: [not_null]}
+      - {name: variant_category, description: Effective technical publication category, data_tests: [not_null]}
+      - name: category_key
+        description: Stable user-facing catalog group key.
+        data_tests:
+          - not_null
+          - accepted_values:
+              values: [regular, special, dialect, audiobook, live, film, reissue, collection, other, unknown]
+      - {name: category_label, description: German label displayed in the catalog, data_tests: [not_null]}
+      - {name: category_order, description: Stable display order, data_tests: [not_null]}
+  - name: mart_series_category_counts
+    description: Publication counts by source series and user-facing category.
+    columns:
+      - {name: series_id, description: Parent source series, data_tests: [not_null]}
+      - {name: series_category_key, description: Unique series and category grain, data_tests: [not_null, unique]}
+      - {name: category_key, description: Stable user-facing category key, data_tests: [not_null]}
+      - {name: category_label, description: German category label, data_tests: [not_null]}
+      - {name: category_order, description: Stable category order, data_tests: [not_null]}
+      - {name: episode_count, description: Publications assigned to the category, data_tests: [not_null]}

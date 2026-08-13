@@ -1,9 +1,27 @@
-with catalog as (
+with reviewed_sources as (
+    select
+        source_key,
+        bool_or(
+            concat(',', reviewed_markers, ',') like '%,dialect,%'
+        ) as is_reviewed_dialect
+    from {{ ref('episode_variant_reviews') }}
+    where review_decision = 'accept'
+    group by source_key
+),
+production_mappings as (
+    select * from {{ ref('episode_production_line_mappings') }}
+),
+catalog as (
     select
         facts.*,
         lower(facts.episode_title) as lower_title,
         coalesce(cast_counts.cast_count, 0) as cast_count,
-        cast_counts.cast_fingerprint
+        cast_counts.cast_fingerprint,
+        coalesce(reviewed_sources.is_reviewed_dialect, false)
+            as is_reviewed_dialect,
+        production_mappings.production_line_key as mapped_production_line_key,
+        production_mappings.production_line_label as mapped_production_line_label,
+        production_mappings.production_line_order as mapped_production_line_order
     from {{ ref('mart_episode_facts') }} facts
     left join (
         select
@@ -16,6 +34,8 @@ with catalog as (
         from {{ ref('mart_speaker_credits') }}
         group by episode_id
     ) cast_counts using (episode_id)
+    left join reviewed_sources using (source_key)
+    left join production_mappings using (source_key)
 ),
 extracted as (
     select
@@ -38,29 +58,25 @@ extracted as (
         lower_title ~ '(hörbuch|audiobook|lesung|liest:?)' as is_audiobook,
         lower_title ~ '(radio show|soundtrack|originalmusik|alexa-skill|welt der hörspiele)'
             as is_other_production,
-        series_name = 'Die Drei ???'
-            and label_name = 'Tudor'
-            and episode_number between 1 and 8 as is_dialect,
+        is_reviewed_dialect as is_dialect,
         lower_title ~ '/'
             and lower_title !~ '(teil\s*)?[0-9]+\s*/\s*[0-9]+'
             as has_title_separator,
         case
-            when series_name = 'John Sinclair'
-             and lower(coalesce(label_name, '')) ~ '(tonstudio braun|^tsb)'
-                then 'tonstudio_braun'
+            when mapped_production_line_key is not null
+                then mapped_production_line_key
             when series_name = 'John Sinclair' then 'edition_2000'
             else 'main'
         end as production_line_key,
         case
-            when series_name = 'John Sinclair'
-             and lower(coalesce(label_name, '')) ~ '(tonstudio braun|^tsb)'
-                then 'Tonstudio Braun'
+            when mapped_production_line_label is not null
+                then mapped_production_line_label
             when series_name = 'John Sinclair' then 'Edition 2000'
             else 'Hauptserie'
         end as production_line_label,
         case
-            when series_name = 'John Sinclair'
-             and lower(coalesce(label_name, '')) ~ '(tonstudio braun|^tsb)' then 20
+            when mapped_production_line_order is not null
+                then mapped_production_line_order
             else 10
         end as production_line_order
     from catalog

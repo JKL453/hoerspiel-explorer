@@ -22,3 +22,10 @@ seeds:
       - {name: reviewed_category, description: Optional human override for the publication category}
       - {name: reviewed_markers, description: Optional comma-separated human marker override}
       - {name: review_note, description: Optional explanation supplied during review}
+  - name: episode_production_line_mappings
+    description: Curated source-key mappings for production lines that were present in raw episode metadata but are not represented in the relational episode schema.
+    columns:
+      - {name: source_key, description: Stable source publication identifier, data_tests: [not_null, unique]}
+      - {name: production_line_key, description: Stable production-line key, data_tests: [not_null]}
+      - {name: production_line_label, description: User-facing production-line label, data_tests: [not_null]}
+      - {name: production_line_order, description: Stable display order, data_tests: [not_null]}

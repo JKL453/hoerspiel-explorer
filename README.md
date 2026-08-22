@@ -1,6 +1,12 @@
 # Hoerspiel Explorer
 
-A data-driven platform for discovering German audio dramas through structured metadata, semantic search, and AI-powered recommendations.
+A data-engineering portfolio for discovering German audio dramas through
+structured metadata, entity resolution, analytics and retrieval.
+
+> **Public catalog maintenance:** The original scraping pipeline demonstrated
+> the end-to-end architecture, but its source basis is being reviewed. The live
+> site therefore shows a maintenance/portfolio page while a provenance-first,
+> API-backed catalog is evaluated. No data was deleted.
 
 ## Live Demo
 
@@ -8,8 +14,10 @@ A data-driven platform for discovering German audio dramas through structured me
 
 ## Project Goal
 
-Audio dramas (Hörspiele) are often difficult to explore beyond simple title or series search.
-This project aims to build a discovery platform that enables:
+Audio dramas are difficult to explore because catalogs mix stories,
+productions, physical editions, digital releases and box sets. This project
+builds the data model and pipelines needed to distinguish those layers and
+enable:
 
 - semantic search across audio dramas
 - filtering by themes (e.g. Christmas, Halloween, crime)
@@ -18,64 +26,63 @@ This project aims to build a discovery platform that enables:
 
 ## Architecture
 
-```
-Scraper → Prefect → Supabase → dbt analytics → Next.js dashboard
-                     └──────→ pgvector/RAG  → Next.js chat
-                                                    ↓
-                                         Azure Static Web Apps
+```text
+DNB / MusicBrainz ──→ canonical metadata ──→ Supabase ──→ dbt
+Apple / Spotify   ──→ API-backed catalog  ──↗              │
+Publisher feeds  ──→ licensed text assets ────────────────→│
+                                                            ↓
+                                            Next.js discovery + RAG
 ```
 
 ## Current Status
 
-- **Scraper**: operational — 24,000+ episodes collected across 1,400+ series
-- **Parser / Cleaner**: complete — speaker and role normalization, stub records for episodes without detail pages
-- **Database**: complete — normalized schema in Supabase (episodes, series, speakers, roles, genres)
-- **Embeddings**: complete — 12,900+ episodes embedded with OpenAI text-embedding-3-small (title, series, description, genres, speakers)
-- **RAG Pipeline**: complete — semantic search via pgvector + Google Gemini for response generation
-- **Frontend**: complete — series overview with search, episode detail pages, AI-powered chat interface
-- **Deployment**: complete — Azure Static Web Apps with GitHub Actions CI/CD
-- **Analytics**: dbt staging, tested marts, Prefect orchestration, and an interactive dashboard
+- **Public frontend**: reversible maintenance mode during the source review
+- **Coverage research**: read-only iTunes Search API pilot for 20 series
+- **Source strategy**: DNB and MusicBrainz core data for persistable provenance;
+  commercial catalogs as terms-compliant API integrations
+- **Data modeling**: canonical episodes separated from productions, releases
+  and containers
+- **Analytics prototype**: dbt staging, tested marts, Prefect orchestration and
+  generated documentation retained as portfolio work
+- **RAG roadmap**: only licensed descriptions or approved structured metadata
+  will be embedded in the rebuilt public version
 
 ## Modules
 
-### Scraper
-Flask-based dashboard and background worker that collects episode metadata from hoerspiele.de.
-Supports single-series scraping and pause/resume via web interface.
+### Historical ingestion prototype
+The Flask, Prefect, parsing and cleaning components remain in the repository as
+an implementation record. They are not the planned source of the rebuilt
+public catalog.
 
 → [scraper/README.md](scraper/README.md)
 
 ### Parser & Cleaner
-Extracts structured data from raw HTML and normalizes it:
+The historical parser demonstrates extraction and normalization of:
 - episode metadata (title, description, duration, release date)
 - speaker and role assignments
 - genre tags
 - speaker name normalization (umlaut variants)
 - stub records for episodes without detail pages
 
-### Database
-Normalized PostgreSQL schema hosted on Supabase:
+### Database and analytics
+The prototype uses a normalized PostgreSQL schema hosted on Supabase:
 - `episodes`, `series`, `speakers`, `roles`, `genres`
 - junction tables for many-to-many relationships
 - `pgvector` extension for semantic similarity search
 - `ivfflat` index for fast approximate nearest neighbor search
 
-### Embeddings & RAG
-- Episode embeddings generated with OpenAI `text-embedding-3-small`
-- Embedding text combines title, series, description, genres and speakers for richer semantic context
-- Similarity search via pgvector `match_episodes` function
-- Response generation with Google Gemini (free tier)
+The next catalog iteration adds field-level provenance and a rights policy for
+text assets. See [the data provenance strategy](docs/data-provenance-strategy.md).
 
 ### Frontend
-Next.js application with three main views:
-- **Series overview** — searchable grid of all 1,400+ series
-- **Episode detail** — full episode list with covers, descriptions and metadata
-- **Chat interface** — natural language recommendations powered by the RAG pipeline
-- **Analytics showcase** — year-filtered trends, publishers, speakers, durations, and franchises backed by dbt marts
+The Next.js application currently presents the rebuild as a portfolio
+maintenance page. The previous series, episode, chat and analytics routes can
+be restored with one environment switch after the publication decision.
 
 ## Tech Stack
 
 - **Python** — scraping, parsing, cleaning, data loading, RAG pipeline
-- **BeautifulSoup / requests** — HTML parsing and HTTP
+- **requests** — rate-limited API clients and coverage analysis
 - **Flask** — scraper dashboard
 - **pandas** — data exploration
 - **Supabase** — PostgreSQL + pgvector
@@ -89,22 +96,13 @@ Next.js application with three main views:
 - **GitHub Actions** — CI/CD pipeline
 - **Docker / Docker Swarm** — containerized scraper deployment
 
-## Cost Architecture
+## Coverage pilot
 
-A key design goal of this project is to minimize running costs while using production-grade infrastructure.
-
-| Component | Service | Cost |
-|---|---|---|
-| Database + Vector Search | Supabase Free Tier | $0/month |
-| Text Embeddings | OpenAI text-embedding-3-small | ~$0.02 one-time |
-| LLM Inference | Google Gemini Free Tier | $0/month |
-| Frontend Hosting | Azure Static Web Apps Free Tier | $0/month |
-| Scraper | Docker Swarm (self-hosted) | $0/month |
-| CI/CD | GitHub Actions | $0/month |
-
-The only significant cost was the one-time embedding generation (~$0.02 for 12,900 episodes).
-This approach demonstrates that production-ready AI applications can be built and operated
-at near-zero cost by combining free tiers strategically.
+`analyze-itunes-coverage` uses the public iTunes Search API without an Apple
+Music developer token. It only creates a private aggregate report and does not
+load Apple metadata into Supabase. See
+[the provenance strategy](docs/data-provenance-strategy.md) for limits,
+operation and the plan for descriptions.
 
 ## Roadmap
 

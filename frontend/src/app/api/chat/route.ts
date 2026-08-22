@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
+
+interface EpisodeMatch {
+  id: number
+  title: string | null
+  series_name: string | null
+  episode_number: number | null
+  description: string | null
+  cover_url: string | null
+  release_date: string | null
+  duration_minutes: number | null
+  similarity: number
+}
 
 function getOpenAIClient() {
   return new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
@@ -21,17 +33,21 @@ async function embedQuery(openai: OpenAI, query: string): Promise<number[]> {
   return response.data[0].embedding
 }
 
-async function searchEpisodes(supabase: any, embedding: number[], matchCount = 10) {
+async function searchEpisodes(
+  supabase: SupabaseClient,
+  embedding: number[],
+  matchCount = 10
+): Promise<EpisodeMatch[]> {
   const { data, error } = await supabase.rpc('match_episodes', {
     query_embedding: embedding,
     match_count: matchCount,
     filter_genre: null,
   })
   if (error) throw error
-  return data
+  return (data ?? []) as EpisodeMatch[]
 }
 
-function buildPrompt(query: string, episodes: any[]): string {
+function buildPrompt(query: string, episodes: EpisodeMatch[]): string {
   const context = episodes
     .map((ep) => {
       const parts = [`**${ep.title}**`]
@@ -59,6 +75,12 @@ Empfehlungen:`
 }
 
 export async function POST(req: NextRequest) {
+  if ((process.env.NEXT_PUBLIC_CATALOG_MODE ?? 'maintenance') !== 'legacy') {
+    return NextResponse.json(
+      { error: 'Die Empfehlungssuche ist während der Überarbeitung deaktiviert.' },
+      { status: 503 }
+    )
+  }
   try {
     const { query } = await req.json()
     if (!query) {
@@ -89,8 +111,9 @@ export async function POST(req: NextRequest) {
       response: response.text,
       episodes,
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Chat error:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Unbekannter Fehler'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

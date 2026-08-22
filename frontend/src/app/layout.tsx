@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Hörspiel Explorer",
-  description: "Entdecke Hörspiele mit KI-Unterstützung",
+  description: "Ein Data-Engineering-Portfolio für nachvollziehbare Hörspiel-Metadaten",
 };
 
 export default function RootLayout({

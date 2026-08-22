@@ -3,6 +3,15 @@
 This document captures planned capabilities that are deliberately outside the
 current analytics release.
 
+## Licensed descriptions and RAG
+
+Reintroduce semantic retrieval after a source-by-source rights review. Store
+descriptive texts as provenance-bearing assets and embed only texts whose
+provider explicitly permits storage and embedding. Publisher feeds and written
+permissions are preferred. Until then, build retrieval documents from approved
+structured metadata and curated tags. See
+[`data-provenance-strategy.md`](data-provenance-strategy.md).
+
 ## Speaker search
 
 Add a first-class speaker search to the discovery frontend.

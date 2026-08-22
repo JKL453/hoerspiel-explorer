@@ -96,3 +96,11 @@ deployments:
       job_variables:
         env:
           HOERSPIEL_DATA_DIR: /data/hoerspiel-explorer
+
+  - name: analyze-itunes-coverage
+    entrypoint: src/hoerspiel_discovery/flows/analyze_itunes_coverage.py:analyze_itunes_coverage
+    work_pool:
+      name: data-platform
+      job_variables:
+        env:
+          HOERSPIEL_DATA_DIR: /data/hoerspiel-explorer

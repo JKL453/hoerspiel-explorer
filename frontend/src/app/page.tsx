@@ -3,6 +3,9 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import MaintenancePage from '@/components/MaintenancePage'
+
+const catalogMode = process.env.NEXT_PUBLIC_CATALOG_MODE ?? 'maintenance'
 
 interface CategorySummary {
   category_key: string
@@ -57,10 +60,13 @@ function normalizeCategoryCounts(value: unknown): CategorySummary[] {
 export default function HomePage() {
   const [series, setSeries] = useState<Series[]>([])
   const [query, setQuery] = useState('')
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(catalogMode === 'legacy')
   const [loadError, setLoadError] = useState(false)
 
   useEffect(() => {
+    if (catalogMode !== 'legacy') {
+      return
+    }
     async function load() {
       let allSeries: Series[] = []
       let from = 0
@@ -99,6 +105,10 @@ export default function HomePage() {
   const filtered = series.filter((item) =>
     item.name.toLowerCase().includes(query.toLowerCase())
   )
+
+  if (catalogMode !== 'legacy') {
+    return <MaintenancePage />
+  }
 
   return (
     <main className="max-w-5xl mx-auto px-4 py-10">

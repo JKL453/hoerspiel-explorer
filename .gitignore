@@ -34,6 +34,7 @@ data/raw/*.html
 data/interim/*
 data/scraper_state.json
 data/series_index.json
+data/review/itunes_coverage/*
 
 # Logs
 *.log

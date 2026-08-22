@@ -1,5 +1,19 @@
 # Hörspiel Explorer pipeline
 
+> Historical architecture: the flows below document the completed engineering
+> prototype but are not the planned basis of the rebuilt public catalog. The
+> current source-evaluation flow is shown first.
+
+```mermaid
+flowchart LR
+    prefect["Prefect: analyze-itunes-coverage"]
+    api["Public iTunes Search API"]
+    report["Private aggregate coverage report"]
+    decision["Source and architecture decision"]
+
+    prefect --> api --> prefect --> report --> decision
+```
+
 This diagram shows the current ingestion and processing pipeline. Rectangles
 with a blue border are Prefect deployments. The database reset remains a
 deliberate manual operation and is not part of a Prefect flow.
